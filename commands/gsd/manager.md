@@ -11,16 +11,20 @@ allowed-tools:
   - Skill
   - Task
 ---
+
 <objective>
-Single-terminal command center for managing a milestone. Shows a dashboard of all phases with visual status indicators, recommends optimal next actions, and dispatches work — discuss runs inline, plan/execute run as background agents.
+里程碑多阶段管理中枢，采用主 agent 纯调度模式。主 agent 仅负责展示状态、选择动作、分派子代理与汇总结果，不直接执行 discuss、plan、execute。
 
-Designed for power users who want to parallelize work across phases from one terminal: discuss a phase while another plans or executes in the background.
+所有执行动作必须委派子代理完成。每轮关键结果返回后必须进入 `completion_gate`，通过 `AskUserQuestion` 或 `ask_user` 收集决策；未触发提问禁止结束。
 
-**Creates/Updates:**
-- No files created directly — dispatches to existing GSD commands via Skill() and background Task agents.
-- Reads `.planning/STATE.md`, `.planning/ROADMAP.md`, phase directories for status.
+流程内置失败、超时、部分完成的回收与二次分派规则，并统一进入 AskUserQuestion 决策分支。
 
-**After:** User exits when done managing, or all phases complete and milestone lifecycle is suggested.
+**创建或更新：**
+
+- 不直接创建文件，仅通过子代理分派既有 GSD 命令。
+- 读取 `.planning/STATE.md`、`.planning/ROADMAP.md` 与阶段目录状态。
+
+**完成后：**仅在 completion_gate 完成提问后允许退出。
 </objective>
 
 <execution_context>

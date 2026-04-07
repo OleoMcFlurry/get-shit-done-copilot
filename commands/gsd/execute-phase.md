@@ -13,16 +13,20 @@ allowed-tools:
   - TodoWrite
   - AskUserQuestion
 ---
+
 <objective>
 Execute all plans in a phase using wave-based parallel execution.
 
 Orchestrator stays lean: discover plans, analyze dependencies, group into waves, spawn subagents, collect results. Each subagent loads the full execute-plan context and handles its own plan.
+主 agent 仅负责编排、调度、汇总与门控。搜索、修改、测试、构建、提交等执行动作必须由子代理完成，主流程不得直接执行。
 
 Optional wave filter:
+
 - `--wave N` executes only Wave `N` for pacing, quota management, or staged rollout
 - phase verification/completion still only happens when no incomplete plans remain after the selected wave finishes
 
 Flag handling rule:
+
 - The optional flags documented below are available behaviors, not implied active behaviors
 - A flag is active only when its literal token appears in `$ARGUMENTS`
 - If a documented flag is absent from `$ARGUMENTS`, treat it as inactive
@@ -43,11 +47,13 @@ Context budget: ~15% orchestrator, 100% fresh per subagent.
 Phase: $ARGUMENTS
 
 **Available optional flags (documentation only — not automatically active):**
+
 - `--wave N` — Execute only Wave `N` in the phase. Use when you want to pace execution or stay inside usage limits.
 - `--gaps-only` — Execute only gap closure plans (plans with `gap_closure: true` in frontmatter). Use after verify-work creates fix plans.
-- `--interactive` — Execute plans sequentially inline (no subagents) with user checkpoints between tasks. Lower token usage, pair-programming style. Best for small phases, bug fixes, and verification gaps.
+- `--interactive` — 以顺序子代理方式执行计划，并在任务间设置用户检查点。适用于小阶段、缺口修复与验证补齐。
 
 **Active flags must be derived from `$ARGUMENTS`:**
+
 - `--wave N` is active only if the literal `--wave` token is present in `$ARGUMENTS`
 - `--gaps-only` is active only if the literal `--gaps-only` token is present in `$ARGUMENTS`
 - `--interactive` is active only if the literal `--interactive` token is present in `$ARGUMENTS`
@@ -60,4 +66,5 @@ Context files are resolved inside the workflow via `gsd-tools init execute-phase
 <process>
 Execute the execute-phase workflow from @~/.claude/get-shit-done/workflows/execute-phase.md end-to-end.
 Preserve all workflow gates (wave execution, checkpoint handling, verification, state updates, routing).
+执行阶段性结果后必须进入 completion_gate，并调用 AskUserQuestion 获取“重试/继续剩余/停止”等决策；未完成询问不得结束流程。
 </process>

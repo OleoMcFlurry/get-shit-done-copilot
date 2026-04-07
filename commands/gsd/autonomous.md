@@ -11,17 +11,21 @@ allowed-tools:
   - AskUserQuestion
   - Task
 ---
+
 <objective>
-Execute all remaining milestone phases autonomously. For each phase: discuss → plan → execute. Pauses only for user decisions (grey area acceptance, blockers, validation requests).
+以主 agent 调度模式执行里程碑剩余阶段。主 agent 只负责阶段发现、任务分派、结果汇总与用户决策，不直接执行 discuss、plan、execute、review、lifecycle 等动作。
 
-Uses ROADMAP.md phase discovery and Skill() flat invocations for each phase command. After all phases complete: milestone audit → complete → cleanup.
+所有执行动作必须委派子代理完成。每轮关键结果返回后必须进入 `completion_gate`，通过 `AskUserQuestion` 或 `ask_user` 收集决策；未触发提问禁止结束流程。
 
-**Creates/Updates:**
-- `.planning/STATE.md` — updated after each phase
-- `.planning/ROADMAP.md` — progress updated after each phase
-- Phase artifacts — CONTEXT.md, PLANs, SUMMARYs per phase
+失败、超时、部分完成均进入 AskUserQuestion 决策分支，按用户选择执行回收、重试、二次分派或停止。
 
-**After:** Milestone is complete and cleaned up.
+**创建或更新：**
+
+- `.planning/STATE.md`：每阶段后更新状态
+- `.planning/ROADMAP.md`：每阶段后更新进度
+- 阶段产物：每阶段 CONTEXT、PLAN、SUMMARY、VERIFICATION
+
+**完成后：**流程进入里程碑生命周期收尾，且收尾前必须经过 completion_gate。
 </objective>
 
 <execution_context>
@@ -34,7 +38,7 @@ Optional flags:
 - `--from N` — start from phase N instead of the first incomplete phase.
 - `--to N` — stop after phase N completes (halt instead of advancing to next phase).
 - `--only N` — execute only phase N (single-phase mode).
-- `--interactive` — run discuss inline with questions (not auto-answered), then dispatch plan→execute as background agents. Keeps the main context lean while preserving user input on decisions.
+- `--interactive` — 通过子代理执行 discuss 并保留交互提问；plan→execute 继续以后台子代理执行，主上下文保持精简。
 
 Project context, phase list, and state are resolved inside the workflow using init commands (`gsd-tools.cjs init milestone-op`, `gsd-tools.cjs roadmap analyze`). No upfront context loading needed.
 </context>

@@ -18,19 +18,23 @@ node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" state json 2>/dev/null || e
 ```
 
 Also read:
+
 - `.planning/STATE.md` — current phase, progress, plan counts
 - `.planning/ROADMAP.md` — milestone structure and phase list
 
 Extract:
+
 - `current_phase` — which phase is active
 - `plan_of` / `plans_total` — plan execution progress
 - `progress` — overall percentage
 - `status` — active, paused, etc.
 
 If no `.planning/` directory exists:
+
 ```
 No GSD project detected. Run `/gsd-new-project` to get started.
 ```
+
 Exit.
 </step>
 
@@ -43,10 +47,13 @@ Then proceed directly to `determine_next_action`.
 
 **Gate 1: Unresolved checkpoint**
 Check if `.planning/.continue-here.md` exists:
+
 ```bash
 [ -f .planning/.continue-here.md ]
 ```
+
 If found:
+
 ```
 ⛔ Hard stop: Unresolved checkpoint
 
@@ -56,11 +63,13 @@ unfinished work that needs manual review before advancing.
 Read the file, resolve the issue, then delete it to continue.
 Use `--force` to bypass this check.
 ```
+
 Exit (do not route).
 
 **Gate 2: Error state**
 Check if STATE.md contains `status: error` or `status: failed`:
 If found:
+
 ```
 ⛔ Hard stop: Project in error state
 
@@ -68,11 +77,13 @@ STATE.md shows status: {status}. Resolve the error before advancing.
 Run `/gsd-health` to diagnose, or manually fix STATE.md.
 Use `--force` to bypass this check.
 ```
+
 Exit.
 
 **Gate 3: Unchecked verification**
 Check if the current phase has a VERIFICATION.md with any `FAIL` items that don't have overrides:
 If found:
+
 ```
 ⛔ Hard stop: Unchecked verification failures
 
@@ -80,15 +91,17 @@ VERIFICATION.md for phase {N} has {count} unresolved FAIL items.
 Address the failures or add overrides before advancing to the next phase.
 Use `--force` to bypass this check.
 ```
+
 Exit.
 
 **Consecutive-call guard:**
 After passing all gates, check a counter file `.planning/.next-call-count`:
+
 - If file exists and count >= 6: prompt "You've called /gsd-next {N} times consecutively. Continue? [y/N]"
 - If user says no, exit
 - Increment the counter
 - The counter file is deleted by any non-`/gsd-next` command (convention — other workflows don't need to implement this, the note here is sufficient)
-</step>
+  </step>
 
 <step name="determine_next_action">
 Apply routing rules based on state:
@@ -140,14 +153,43 @@ Display the determination:
 ```
 
 Then immediately invoke the determined command via SlashCommand.
-Do not ask for confirmation — the whole point of `/gsd-next` is zero-friction advancement.
+Do not ask for confirmation before invoking — `/gsd-next` still keeps zero-friction advancement.
+After command execution returns, continue to `completion_gate`.
 </step>
+
+<step name="completion_gate" required="true">
+**Mandatory ask gate before workflow completion.**
+
+After the invoked command returns, call AskUserQuestion:
+
+- **question:** "当前轮次已完成。下一步操作是什么？"
+- **options:** "继续自动推进（推荐）" / "调整后继续" / "结束本次会话"
+
+If user selects "继续自动推进（推荐）":
+
+- Invoke `/gsd-next` again.
+
+If user selects "调整后继续":
+
+- Ask for freeform input.
+- Route to `/gsd-do` with the new intent text.
+
+If user selects "结束本次会话":
+
+- Stop workflow.
+
+State assertion:
+
+- Workflow remains `in_progress` before ask gate finishes.
+- Completion is valid only after ask gate response is processed.
+  </step>
 
 </process>
 
 <success_criteria>
+
 - [ ] Project state correctly detected
 - [ ] Next action correctly determined from routing rules
 - [ ] Command invoked immediately without user confirmation
 - [ ] Clear status shown before invoking
-</success_criteria>
+      </success_criteria>
