@@ -58,6 +58,19 @@ Parse `$ARGUMENTS` before loading any context:
 - Optional `--wave N` → `WAVE_FILTER`
 - Optional `--gaps-only` keeps its current meaning
 
+If `PHASE_ARG` is empty (no positional token), prompt the user via AskUserQuestion:
+
+```
+AskUserQuestion({
+  header: "Phase Number",
+  question: "Which phase should be executed? Provide the phase number.",
+  freeform: true,
+  placeholder: "e.g. 1"
+})
+```
+
+Use the response as `PHASE_ARG`.
+
 If `--wave` is absent, preserve the current behavior of executing all incomplete waves in the phase.
 </step>
 

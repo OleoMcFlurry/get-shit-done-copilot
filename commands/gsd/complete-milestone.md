@@ -2,7 +2,7 @@
 type: prompt
 name: gsd:complete-milestone
 description: Archive completed milestone and prepare for next version
-argument-hint: <version>
+argument-hint: "[version]"
 allowed-tools:
   - Read
   - Write
@@ -11,6 +11,19 @@ allowed-tools:
 
 <objective>
 Mark milestone {{version}} complete, archive to milestones/, and update ROADMAP.md and REQUIREMENTS.md.
+
+If $ARGUMENTS is empty (no version provided), prompt the user via AskUserQuestion:
+
+```
+AskUserQuestion({
+  header: "Milestone Version",
+  question: "Which milestone version should be completed? Provide the version number.",
+  freeform: true,
+  placeholder: "e.g. 1.0"
+})
+```
+
+Use the response as {{version}} and continue.
 
 Purpose: Create historical record of shipped version, archive milestone artifacts (roadmap + requirements), and prepare for next milestone.
 Output: Milestone archived (roadmap + requirements), PROJECT.md evolved, git tagged.

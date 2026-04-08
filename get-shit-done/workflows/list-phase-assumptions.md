@@ -9,16 +9,18 @@ Key difference from discuss-phase: This is ANALYSIS of what Claude thinks, not I
 <step name="validate_phase" priority="first">
 Phase number: $ARGUMENTS (required)
 
-**If argument missing:**
+**If argument missing,** prompt the user via AskUserQuestion:
 
 ```
-Error: Phase number required.
-
-Usage: /gsd-list-phase-assumptions [phase-number]
-Example: /gsd-list-phase-assumptions 3
+AskUserQuestion({
+  header: "Phase Number",
+  question: "Which phase should assumptions be listed for? Provide the phase number.",
+  freeform: true,
+  placeholder: "e.g. 3"
+})
 ```
 
-Exit workflow.
+Use the response as the phase number and continue.
 
 **If argument provided:**
 Validate phase exists in roadmap:

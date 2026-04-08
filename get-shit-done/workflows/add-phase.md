@@ -14,15 +14,18 @@ Parse the command arguments:
 - Example: `/gsd-add-phase Add authentication` → description = "Add authentication"
 - Example: `/gsd-add-phase Fix critical performance issues` → description = "Fix critical performance issues"
 
-If no arguments provided:
+If no arguments provided, prompt the user via AskUserQuestion:
 
 ```
-ERROR: Phase description required
-Usage: /gsd-add-phase <description>
-Example: /gsd-add-phase Add authentication system
+AskUserQuestion({
+  header: "Phase Description",
+  question: "What should this new phase accomplish? Provide a short description.",
+  freeform: true,
+  placeholder: "e.g. Add authentication system"
+})
 ```
 
-Exit.
+Use the response as the phase description and continue.
 </step>
 
 <step name="init_context">

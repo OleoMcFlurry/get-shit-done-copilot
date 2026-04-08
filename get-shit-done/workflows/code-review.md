@@ -17,6 +17,22 @@ Parse arguments and load project state:
 
 ```bash
 PHASE_ARG="${1}"
+```
+
+**If PHASE_ARG is empty,** prompt the user via AskUserQuestion:
+
+```
+AskUserQuestion({
+  header: "Phase Number",
+  question: "Which phase should be reviewed? Provide the phase number.",
+  freeform: true,
+  placeholder: "e.g. 2"
+})
+```
+
+Use the response as `PHASE_ARG`.
+
+```bash
 INIT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" init phase-op "${PHASE_ARG}")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 ```

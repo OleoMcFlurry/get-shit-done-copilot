@@ -1,7 +1,7 @@
 ---
 name: gsd:add-backlog
 description: Add an idea to the backlog parking lot (999.x numbering)
-argument-hint: <description>
+argument-hint: "[description]"
 allowed-tools:
   - Read
   - Write
@@ -15,6 +15,21 @@ the normal phase sequence and accumulate context over time.
 </objective>
 
 <process>
+
+0. **Check for arguments:**
+
+   If $ARGUMENTS is empty, prompt the user via AskUserQuestion:
+
+   ```
+   AskUserQuestion({
+     header: "Backlog Item",
+     question: "Describe the idea to add to the backlog.",
+     freeform: true,
+     placeholder: "e.g. Add authentication system"
+   })
+   ```
+
+   Use the response as $ARGUMENTS and continue.
 
 1. **Read ROADMAP.md** to find existing backlog entries:
    ```bash

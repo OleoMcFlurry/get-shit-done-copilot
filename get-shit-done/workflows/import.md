@@ -29,13 +29,20 @@ Parse `$ARGUMENTS` to determine the execution mode:
   ```
   GSD > --prd mode is planned for a future release. Use --from to import plan files.
   ```
-- If neither flag is found: display usage and exit:
+- If neither flag is found, prompt the user via AskUserQuestion:
 
 ```
-Usage: /gsd-import --from <path>
+Usage: /gsd-import --from <filepath>
 
-  --from <path>   Import an external plan file into GSD format
+AskUserQuestion({
+  header: "Import Source",
+  question: "Provide the path to the file to import.\nUsage: /gsd-import --from <filepath>",
+  freeform: true,
+  placeholder: "e.g. ./docs/plan.md"
+})
 ```
+
+Set MODE=plan and use the response as FILEPATH. Continue with validation.
 
 **Validate the file path:**
 

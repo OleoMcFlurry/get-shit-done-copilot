@@ -21,7 +21,7 @@ Output: Conversational output only (no file creation) - ends with "What do you t
 </execution_context>
 
 <context>
-Phase number: $ARGUMENTS (required)
+Phase number: $ARGUMENTS (prompted if empty)
 
 Project state and roadmap are loaded in-workflow using targeted reads.
 </context>

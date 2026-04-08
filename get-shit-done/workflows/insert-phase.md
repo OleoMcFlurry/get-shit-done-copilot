@@ -17,15 +17,18 @@ Example: `/gsd-insert-phase 72 Fix critical auth bug`
 -> after = 72
 -> description = "Fix critical auth bug"
 
-If arguments missing:
+If arguments missing, prompt the user via AskUserQuestion:
 
 ```
-ERROR: Both phase number and description required
-Usage: /gsd-insert-phase <after> <description>
-Example: /gsd-insert-phase 72 Fix critical auth bug
+AskUserQuestion({
+  header: "Insert Phase",
+  question: "Provide the phase number to insert after and a description.\nFormat: <phase-number> <description>",
+  freeform: true,
+  placeholder: "e.g. 72 Fix critical auth bug"
+})
 ```
 
-Exit.
+Parse the response for phase number (first token) and description (remaining text). Continue with parsed values.
 
 Validate first argument is an integer.
 </step>

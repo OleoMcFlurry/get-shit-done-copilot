@@ -137,6 +137,19 @@ Text mode applies to ALL workflows in the session, not just discuss-phase.
 <step name="initialize" priority="first">
 Phase number from argument (required).
 
+**If PHASE is empty (no phase number in $ARGUMENTS),** prompt the user via AskUserQuestion:
+
+```
+AskUserQuestion({
+  header: "Phase Number",
+  question: "Which phase should be discussed? Provide the phase number.",
+  freeform: true,
+  placeholder: "e.g. 1"
+})
+```
+
+Use the response as PHASE.
+
 ```bash
 INIT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" init phase-op "${PHASE}")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi

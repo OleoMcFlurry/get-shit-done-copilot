@@ -43,4 +43,6 @@ Initialize a new project through unified flow: questioning → research (optiona
 <process>
 Execute the new-project workflow from @~/.claude/get-shit-done/workflows/new-project.md end-to-end.
 Preserve all workflow gates (validation, approvals, commits, routing).
+
+**Empty arguments:** When $ARGUMENTS is empty (no flags, no text), proceed with the interactive questioning flow (Step 3 of the workflow). The workflow will ask "What do you want to build?" — this is the expected behavior. Do NOT exit or show usage help when arguments are absent.
 </process>

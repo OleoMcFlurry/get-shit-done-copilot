@@ -17,16 +17,18 @@ Parse `$ARGUMENTS` for:
 
 Example: `/gsd-add-tests 12 focus on edge cases` → `$PHASE_ARG=12`, `$EXTRA_INSTRUCTIONS="focus on edge cases"`
 
-If no phase argument provided:
+If no phase argument provided, prompt the user via AskUserQuestion:
 
 ```
-ERROR: Phase number required
-Usage: /gsd-add-tests <phase> [additional instructions]
-Example: /gsd-add-tests 12
-Example: /gsd-add-tests 12 focus on edge cases in the pricing module
+AskUserQuestion({
+  header: "Phase Number",
+  question: "Which phase should tests be generated for? Provide the phase number.",
+  freeform: true,
+  placeholder: "e.g. 12"
+})
 ```
 
-Exit.
+Use the response as `$PHASE_ARG` and continue.
 </step>
 
 <step name="init_context">

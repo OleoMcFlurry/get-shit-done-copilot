@@ -14,15 +14,18 @@ Parse the command arguments:
 - Example: `/gsd-remove-phase 17` → phase = 17
 - Example: `/gsd-remove-phase 16.1` → phase = 16.1
 
-If no argument provided:
+If no argument provided, prompt the user via AskUserQuestion:
 
 ```
-ERROR: Phase number required
-Usage: /gsd-remove-phase <phase-number>
-Example: /gsd-remove-phase 17
+AskUserQuestion({
+  header: "Phase Number",
+  question: "Which phase should be removed? Provide the phase number.",
+  freeform: true,
+  placeholder: "e.g. 17"
+})
 ```
 
-Exit.
+Use the response as the target phase number and continue.
 </step>
 
 <step name="init_context">
