@@ -12,10 +12,11 @@ Does NOT fire after sub-agent returns or mid-workflow.
 
 **Step 1 — Check config:**
 ```bash
-GATE_ENABLED=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow.completion_gate 2>/dev/null || echo "false")
+GATE_ENABLED=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow.completion_gate 2>/dev/null || echo "")
 ```
 
-If `GATE_ENABLED` is not `"true"`, exit — do nothing. Workflow ends normally.
+If `GATE_ENABLED` is explicitly `"false"`, exit — do nothing. Workflow ends normally.
+If `GATE_ENABLED` is empty (key not set) or any other value, proceed — gate fires by default.
 
 **Step 2 — Load project state:**
 ```bash

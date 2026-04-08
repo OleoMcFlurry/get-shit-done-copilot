@@ -170,8 +170,8 @@ AskUserQuestion([
     header: "Completion Gate",
     multiSelect: false,
     options: [
-      { label: "No (Recommended)", description: "Workflows end normally after completion. Standard behavior." },
-      { label: "Yes", description: "After each /gsd-* command completes, ask what to do next — keeps the session alive. Ideal for GitHub Copilot billing where only the main agent turn is charged." }
+      { label: "Yes (Default)", description: "After each /gsd-* command completes, ask what to do next — keeps the session alive. Ideal for GitHub Copilot billing where only the main agent turn is charged." },
+      { label: "No", description: "Workflows end normally after completion. Disables the completion gate." }
     ]
   }
 ])

@@ -754,7 +754,7 @@ These spawn additional agents during planning/execution. They improve quality bu
 | `workflow.skip_discuss` | `false` | Skip discuss-phase in autonomous mode |
 | `workflow.text_mode` | `false` | Text-only mode for remote sessions (no TUI menus) |
 | `workflow.use_worktrees` | `true` | Toggle worktree isolation for execution |
-| `workflow.completion_gate` | `false` | After each command completes, ask for the next step — keeps the session alive. Ideal for Copilot billing where only the main-agent turn is charged. |
+| `workflow.completion_gate` | `true` | After each command completes, ask for the next step — keeps the session alive. Ideal for Copilot billing where only the main-agent turn is charged. Set to `false` to disable. |
 
 Use `/gsd-settings` to toggle these, or override per-invocation:
 - `/gsd-plan-phase --skip-research`
