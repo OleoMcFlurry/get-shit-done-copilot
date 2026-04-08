@@ -58,3 +58,6 @@ If no `.planning/` directory exists, inform the user to run `/gsd-new-project` f
 - [ ] Results formatted clearly
 - [ ] Displayed to user
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

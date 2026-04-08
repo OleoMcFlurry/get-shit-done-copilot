@@ -137,3 +137,6 @@ Continue exploring with `/gsd-explore` or start working with `/gsd-next`.
 - [ ] Files written to correct destinations
 - [ ] Commit respects commit_docs config
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

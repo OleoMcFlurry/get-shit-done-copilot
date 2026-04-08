@@ -162,3 +162,6 @@ Display `/clear` reminder.
 - [ ] threats_open > 0 BLOCKS advancement (no next-phase routing emitted)
 - [ ] Results with routing presented on success
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

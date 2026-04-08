@@ -12,14 +12,14 @@ Does NOT fire after sub-agent returns or mid-workflow.
 
 **Step 1 — Check config:**
 ```bash
-GATE_ENABLED=$(node "$HOME/.copilot/get-shit-done/bin/gsd-tools.cjs" config-get workflow.completion_gate 2>/dev/null || echo "false")
+GATE_ENABLED=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow.completion_gate 2>/dev/null || echo "false")
 ```
 
 If `GATE_ENABLED` is not `"true"`, exit — do nothing. Workflow ends normally.
 
 **Step 2 — Load project state:**
 ```bash
-INIT=$(node "$HOME/.copilot/get-shit-done/bin/gsd-tools.cjs" init status 2>/dev/null || echo "{}")
+INIT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" init status 2>/dev/null || echo "{}")
 ```
 
 Parse `INIT` to determine next-step options. If parsing fails or state is unavailable, fall back to generic prompt (Step 3b).

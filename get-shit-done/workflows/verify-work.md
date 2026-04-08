@@ -698,3 +698,6 @@ Default to **major** if unclear. User can correct if needed.
 - [ ] If issues: revision loop until plans pass (max 3 iterations)
 - [ ] Ready for `/gsd-execute-phase --gaps-only` when complete
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

@@ -100,3 +100,6 @@ Use `/gsd-map-codebase` for a comprehensive 4-area parallel scan.
 - [ ] Single mapper agent spawned with correct focus
 - [ ] Output documents written to .planning/codebase/
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

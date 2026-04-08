@@ -235,3 +235,6 @@ Use AskUserQuestion:
 - [ ] `.planning/` directory initialized at workspace root
 - [ ] User informed of workspace path and next steps
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

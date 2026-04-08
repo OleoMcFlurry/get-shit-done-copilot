@@ -172,3 +172,6 @@ Display `/clear` reminder.
 - [ ] Test files committed separately
 - [ ] Results with routing presented
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

@@ -279,3 +279,6 @@ Clean up temp files.
 - [ ] Temp files cleaned up
 - [ ] User knows how to use feedback (/gsd-plan-phase --reviews)
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

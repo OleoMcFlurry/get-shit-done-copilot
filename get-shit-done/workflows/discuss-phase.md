@@ -1199,3 +1199,6 @@ The power user mode generates ALL questions upfront into machine-readable and hu
 - `--chain` triggers interactive discuss followed by auto plan+execute (no auto-answering)
 - `--chain` and `--auto` both persist chain flag and auto-advance to plan-phase
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

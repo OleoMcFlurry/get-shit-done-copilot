@@ -54,3 +54,6 @@ For each workspace, show:
 - **GSD Project** — whether `.planning/PROJECT.md` exists (Yes/No)
 
 </process>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

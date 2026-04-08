@@ -898,3 +898,6 @@ Ready for next task: /gsd-quick ${GSD_WS}
 - [ ] STATE.md updated with quick task row (Status column when --validate)
 - [ ] Artifacts committed
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

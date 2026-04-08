@@ -271,3 +271,6 @@ becomes:
 - [ ] Changes committed (includes REQUIREMENTS.md)
 - [ ] User knows to run `/gsd-plan-phase` next
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

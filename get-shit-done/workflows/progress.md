@@ -505,3 +505,6 @@ Ready to plan the next milestone.
 - [ ] User confirms before any action
 - [ ] Seamless handoff to appropriate gsd command
       </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

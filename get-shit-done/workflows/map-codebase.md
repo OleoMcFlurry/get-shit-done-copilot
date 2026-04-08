@@ -377,3 +377,6 @@ End workflow.
 - Clear completion summary with line counts
 - User offered clear next steps in GSD style
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

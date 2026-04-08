@@ -88,3 +88,6 @@ Workspace "$WORKSPACE_NAME" removed.
 ```
 
 </process>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

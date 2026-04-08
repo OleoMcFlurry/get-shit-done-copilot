@@ -153,3 +153,6 @@ Phase removal is complete when:
 - [ ] Changes committed with descriptive message
 - [ ] User informed of changes
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

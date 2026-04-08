@@ -513,3 +513,6 @@ If `--files` validation fails unexpectedly on macOS, install coreutils or use ab
 - [ ] REVIEW.md committed if created
 - [ ] Results presented inline with next step suggestion
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

@@ -176,3 +176,6 @@ If "Re-examine": Return to analyze_phase with updated understanding
 - User feedback acknowledged
 - Clear next steps offered
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

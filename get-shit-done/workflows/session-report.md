@@ -144,3 +144,6 @@ If this is the first report, mention:
 - [ ] Filename includes date to prevent overwrites
 - [ ] Result summary displayed to user
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

@@ -150,3 +150,6 @@ Archived:
 - [ ] Changes committed
 
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

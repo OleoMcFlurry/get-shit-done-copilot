@@ -127,3 +127,6 @@ Or use /gsd-ship to create the PR automatically.
 - [ ] Commit messages preserved from original
 - [ ] User shown next steps
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

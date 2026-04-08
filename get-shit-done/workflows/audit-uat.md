@@ -107,3 +107,6 @@ Prerequisites: {what needs to be running/configured}
 </step>
 
 </process>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

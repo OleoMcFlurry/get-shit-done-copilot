@@ -1055,3 +1055,6 @@ When any phase operation fails or a blocker is detected, present 3 options via A
 - [ ] `--interactive` waits for background agents before post-execution routing
 - [ ] `--interactive` compatible with `--only`, `--from`, and `--to` flags
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

@@ -155,3 +155,6 @@ Present the final summary:
 - Manual-only findings are surfaced for developer attention
 - --dry-run produces a useful standalone classification table
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

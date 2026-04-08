@@ -338,3 +338,6 @@ All requirements met. No critical blockers. Accumulated tech debt needs review.
 - [ ] Missing VALIDATION.md phases flagged with validate-phase suggestion
 - [ ] Results presented with actionable next steps
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

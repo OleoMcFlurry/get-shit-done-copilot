@@ -495,3 +495,6 @@ echo "════════════════════════�
 - [ ] Missing fix report handled with explicit error message in present_results
 - [ ] Results presented inline with next step suggestion
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

@@ -110,3 +110,6 @@ Roadmap updated: .planning/ROADMAP.md
 - [ ] STATE.md updated with roadmap evolution note
 - [ ] User informed of next steps
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

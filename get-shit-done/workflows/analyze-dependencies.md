@@ -94,3 +94,6 @@ When writing to ROADMAP.md:
 After applying: "ROADMAP.md updated. Run `/gsd-manager` to execute phases in the correct order."
 
 </process>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

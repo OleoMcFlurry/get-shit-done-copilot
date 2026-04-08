@@ -167,3 +167,6 @@ and the milestone scope matches the trigger condition.
 - [ ] Committed to git
 - [ ] User shown confirmation with trigger info
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

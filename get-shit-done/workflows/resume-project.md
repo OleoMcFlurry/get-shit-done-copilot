@@ -324,3 +324,6 @@ Resume is complete when:
 - [ ] User knows exactly where project stands
 - [ ] Session continuity updated
       </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

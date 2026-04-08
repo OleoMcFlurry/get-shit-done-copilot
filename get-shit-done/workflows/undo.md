@@ -310,3 +310,6 @@ Show next steps:
 - [ ] Error handling cleans up both first-call and mid-sequence conflict cases
 - [ ] git reset --hard is NEVER used anywhere in this workflow
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

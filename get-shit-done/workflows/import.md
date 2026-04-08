@@ -272,3 +272,6 @@ Do NOT:
 - Reference `pbr-tools`, `pbr:`, or `PLAN-BUILD-RUN` anywhere
 - Write any PLAN.md file when blockers exist — the safety gate must hold
 - Skip path validation on the --from file argument
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

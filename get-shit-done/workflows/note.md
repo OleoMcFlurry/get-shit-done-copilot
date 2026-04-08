@@ -154,3 +154,6 @@ Promoted from quick note captured on {original date}.
 - [ ] Promote: Source note marked as promoted
 - [ ] Global fallback: Works when no `.planning/` exists
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

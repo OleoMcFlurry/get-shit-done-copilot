@@ -1151,3 +1151,6 @@ End workflow.
 - [ ] scan_for_secrets ran before commit and blocked on detected patterns
 - [ ] --verify-only invokes gsd-doc-verifier for full fact-checking (not just VERIFY marker count)
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

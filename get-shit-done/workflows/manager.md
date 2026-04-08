@@ -361,3 +361,6 @@ Display final status with progress bar:
 - [ ] "Other" free-text input parsed for phase number and action
 - [ ] Manager loop continues until user exits or milestone completes
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

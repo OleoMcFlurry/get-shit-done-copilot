@@ -235,3 +235,6 @@ After shipping:
 - [ ] STATE.md updated with shipping status
 - [ ] User knows PR number and next steps
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

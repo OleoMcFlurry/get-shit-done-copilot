@@ -186,3 +186,6 @@ node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(${padded_phase
 - [ ] Score summary displayed to user
 - [ ] Next steps presented
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

@@ -1271,3 +1271,6 @@ PHASE1_HAS_UI=$(echo "$PHASE1_SECTION" | grep -qi "UI hint.*yes" && echo "true" 
 **Atomic commits:** Each phase commits its artifacts immediately. If context is lost, artifacts persist.
 
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

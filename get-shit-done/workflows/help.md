@@ -607,3 +607,6 @@ Example config:
 - Check `.planning/ROADMAP.md` for phase status
 - Run `/gsd-progress` to check where you're up to
 </reference>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

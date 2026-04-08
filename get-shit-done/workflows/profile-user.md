@@ -448,3 +448,6 @@ rm -f "$ANALYSIS_PATH" 2>/dev/null
 - [ ] Refresh diff shows changed dimensions when --refresh was used
 - [ ] Temp files cleaned up on completion
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

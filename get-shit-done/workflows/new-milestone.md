@@ -490,3 +490,6 @@ Also: `/gsd-plan-phase [N] ${GSD_WS}` — skip discussion, plan directly
 
 **Atomic commits:** Each phase commits its artifacts immediately.
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md

@@ -349,3 +349,6 @@ Present next steps:
 - [ ] Coverage gaps documented
 - [ ] Next steps presented to user
 </success_criteria>
+
+## Completion Gate
+@~/.claude/get-shit-done/references/completion-gate.md
