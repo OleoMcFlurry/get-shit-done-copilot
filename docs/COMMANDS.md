@@ -18,8 +18,8 @@
 
 Initialize a new project with deep context gathering.
 
-| Flag | Description |
-|------|-------------|
+| Flag              | Description                                            |
+| ----------------- | ------------------------------------------------------ |
 | `--auto @file.md` | Auto-extract from document, skip interactive questions |
 
 **Prerequisites:** No existing `.planning/PROJECT.md`
@@ -36,16 +36,17 @@ Initialize a new project with deep context gathering.
 
 Create an isolated workspace with repo copies and independent `.planning/` directory.
 
-| Flag | Description |
-|------|-------------|
-| `--name <name>` | Workspace name (required) |
-| `--repos repo1,repo2` | Comma-separated repo paths or names |
-| `--path /target` | Target directory (default: `~/gsd-workspaces/<name>`) |
-| `--strategy worktree\|clone` | Copy strategy (default: `worktree`) |
-| `--branch <name>` | Branch to checkout (default: `workspace/<name>`) |
-| `--auto` | Skip interactive questions |
+| Flag                         | Description                                           |
+| ---------------------------- | ----------------------------------------------------- |
+| `--name <name>`              | Workspace name (required)                             |
+| `--repos repo1,repo2`        | Comma-separated repo paths or names                   |
+| `--path /target`             | Target directory (default: `~/gsd-workspaces/<name>`) |
+| `--strategy worktree\|clone` | Copy strategy (default: `worktree`)                   |
+| `--branch <name>`            | Branch to checkout (default: `workspace/<name>`)      |
+| `--auto`                     | Skip interactive questions                            |
 
 **Use cases:**
+
 - Multi-repo: work on a subset of repos with isolated GSD state
 - Feature isolation: `--repos .` creates a worktree of the current repo
 
@@ -76,9 +77,9 @@ List active GSD workspaces and their status.
 
 Remove a workspace and clean up git worktrees.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `<name>` | Yes | Workspace name to remove |
+| Argument | Required | Description              |
+| -------- | -------- | ------------------------ |
+| `<name>` | Yes      | Workspace name to remove |
 
 **Safety:** Refuses removal if any repo has uncommitted changes. Requires name confirmation.
 
@@ -92,16 +93,16 @@ Remove a workspace and clean up git worktrees.
 
 Capture implementation decisions before planning.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | No | Phase number (defaults to current phase) |
+| Argument | Required | Description                              |
+| -------- | -------- | ---------------------------------------- |
+| `N`      | No       | Phase number (defaults to current phase) |
 
-| Flag | Description |
-|------|-------------|
-| `--auto` | Auto-select recommended defaults for all questions |
-| `--batch` | Group questions for batch intake instead of one-by-one |
-| `--analyze` | Add trade-off analysis during discussion |
-| `--power` | File-based bulk question answering from a prepared answers file |
+| Flag        | Description                                                     |
+| ----------- | --------------------------------------------------------------- |
+| `--auto`    | Auto-select recommended defaults for all questions              |
+| `--batch`   | Group questions for batch intake instead of one-by-one          |
+| `--analyze` | Add trade-off analysis during discussion                        |
+| `--power`   | File-based bulk question answering from a prepared answers file |
 
 **Prerequisites:** `.planning/ROADMAP.md` exists
 **Produces:** `{phase}-CONTEXT.md`, `{phase}-DISCUSSION-LOG.md` (audit trail)
@@ -120,9 +121,9 @@ Capture implementation decisions before planning.
 
 Generate UI design contract for frontend phases.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | No | Phase number (defaults to current phase) |
+| Argument | Required | Description                              |
+| -------- | -------- | ---------------------------------------- |
+| `N`      | No       | Phase number (defaults to current phase) |
 
 **Prerequisites:** `.planning/ROADMAP.md` exists, phase has frontend/UI work
 **Produces:** `{phase}-UI-SPEC.md`
@@ -137,20 +138,20 @@ Generate UI design contract for frontend phases.
 
 Research, plan, and verify a phase.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | No | Phase number (defaults to next unplanned phase) |
+| Argument | Required | Description                                     |
+| -------- | -------- | ----------------------------------------------- |
+| `N`      | No       | Phase number (defaults to next unplanned phase) |
 
-| Flag | Description |
-|------|-------------|
-| `--auto` | Skip interactive confirmations |
-| `--research` | Force re-research even if RESEARCH.md exists |
-| `--skip-research` | Skip domain research step |
-| `--gaps` | Gap closure mode (reads VERIFICATION.md, skips research) |
-| `--skip-verify` | Skip plan checker verification loop |
-| `--prd <file>` | Use a PRD file instead of discuss-phase for context |
-| `--reviews` | Replan with cross-AI review feedback from REVIEWS.md |
-| `--validate` | Run state validation before planning begins |
+| Flag              | Description                                              |
+| ----------------- | -------------------------------------------------------- |
+| `--auto`          | Skip interactive confirmations                           |
+| `--research`      | Force re-research even if RESEARCH.md exists             |
+| `--skip-research` | Skip domain research step                                |
+| `--gaps`          | Gap closure mode (reads VERIFICATION.md, skips research) |
+| `--skip-verify`   | Skip plan checker verification loop                      |
+| `--prd <file>`    | Use a PRD file instead of discuss-phase for context      |
+| `--reviews`       | Replan with cross-AI review feedback from REVIEWS.md     |
+| `--validate`      | Run state validation before planning begins              |
 
 **Prerequisites:** `.planning/ROADMAP.md` exists
 **Produces:** `{phase}-RESEARCH.md`, `{phase}-{N}-PLAN.md`, `{phase}-VALIDATION.md`
@@ -168,11 +169,11 @@ Research, plan, and verify a phase.
 
 Execute all plans in a phase with wave-based parallelization, or run a specific wave.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | **Yes** | Phase number to execute |
-| `--wave N` | No | Execute only Wave `N` in the phase |
-| `--validate` | No | Run state validation before execution begins |
+| Argument     | Required | Description                                  |
+| ------------ | -------- | -------------------------------------------- |
+| `N`          | **Yes**  | Phase number to execute                      |
+| `--wave N`   | No       | Execute only Wave `N` in the phase           |
+| `--validate` | No       | Run state validation before execution begins |
 
 **Prerequisites:** Phase has PLAN.md files
 **Produces:** per-plan `{phase}-{N}-SUMMARY.md`, git commits, and `{phase}-VERIFICATION.md` when the phase is fully complete
@@ -189,9 +190,9 @@ Execute all plans in a phase with wave-based parallelization, or run a specific 
 
 User acceptance testing with auto-diagnosis.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | No | Phase number (defaults to last executed phase) |
+| Argument | Required | Description                                    |
+| -------- | -------- | ---------------------------------------------- |
+| `N`      | No       | Phase number (defaults to last executed phase) |
 
 **Prerequisites:** Phase has been executed
 **Produces:** `{phase}-UAT.md`, fix plans if issues found
@@ -208,6 +209,7 @@ Automatically advance to the next logical workflow step. Reads project state and
 
 **Prerequisites:** `.planning/` directory exists
 **Behavior:**
+
 - No project → suggests `/gsd-new-project`
 - Phase needs discussion → runs `/gsd-discuss-phase`
 - Phase needs planning → runs `/gsd-plan-phase`
@@ -233,6 +235,7 @@ Generate a session report with work summary, outcomes, and estimated resource us
 ```
 
 **Report includes:**
+
 - Work performed (commits, plans executed, phases progressed)
 - Outcomes and deliverables
 - Blockers and decisions made
@@ -245,10 +248,10 @@ Generate a session report with work summary, outcomes, and estimated resource us
 
 Create PR from completed phase work with auto-generated body.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | No | Phase number or milestone version (e.g., `4` or `v1.0`) |
-| `--draft` | No | Create as draft PR |
+| Argument  | Required | Description                                             |
+| --------- | -------- | ------------------------------------------------------- |
+| `N`       | No       | Phase number or milestone version (e.g., `4` or `v1.0`) |
+| `--draft` | No       | Create as draft PR                                      |
 
 **Prerequisites:** Phase verified (`/gsd-verify-work` passed), `gh` CLI installed and authenticated
 **Produces:** GitHub PR with rich body from planning artifacts, STATE.md updated
@@ -259,6 +262,7 @@ Create PR from completed phase work with auto-generated body.
 ```
 
 **PR body includes:**
+
 - Phase goal from ROADMAP.md
 - Changes summary from SUMMARY.md files
 - Requirements addressed (REQ-IDs)
@@ -271,9 +275,9 @@ Create PR from completed phase work with auto-generated body.
 
 Retroactive 6-pillar visual audit of implemented frontend.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | No | Phase number (defaults to last executed phase) |
+| Argument | Required | Description                                    |
+| -------- | -------- | ---------------------------------------------- |
+| `N`      | No       | Phase number (defaults to last executed phase) |
 
 **Prerequisites:** Project has frontend code (works standalone, no GSD project needed)
 **Produces:** `{phase}-UI-REVIEW.md`, screenshots in `.planning/ui-reviews/`
@@ -328,14 +332,15 @@ Archive milestone, tag release.
 
 Generate comprehensive project summary from milestone artifacts for team onboarding and review.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `version` | No | Milestone version (defaults to current/latest milestone) |
+| Argument  | Required | Description                                              |
+| --------- | -------- | -------------------------------------------------------- |
+| `version` | No       | Milestone version (defaults to current/latest milestone) |
 
 **Prerequisites:** At least one completed or in-progress milestone
 **Produces:** `.planning/reports/MILESTONE_SUMMARY-v{version}.md`
 
 **Summary includes:**
+
 - Overview, architecture decisions, phase-by-phase breakdown
 - Key decisions and trade-offs
 - Requirements coverage
@@ -354,10 +359,10 @@ Generate comprehensive project summary from milestone artifacts for team onboard
 
 Start next version cycle.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `name` | No | Milestone name |
-| `--reset-phase-numbers` | No | Restart the new milestone at Phase 1 and archive old phase dirs before roadmapping |
+| Argument                | Required | Description                                                                        |
+| ----------------------- | -------- | ---------------------------------------------------------------------------------- |
+| `name`                  | No       | Milestone name                                                                     |
+| `--reset-phase-numbers` | No       | Restart the new milestone at Phase 1 and archive old phase dirs before roadmapping |
 
 **Prerequisites:** Previous milestone completed
 **Produces:** Updated `PROJECT.md`, new `REQUIREMENTS.md`, new `ROADMAP.md`
@@ -384,9 +389,9 @@ Append new phase to roadmap.
 
 Insert urgent work between phases using decimal numbering.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | No | Insert after this phase number |
+| Argument | Required | Description                    |
+| -------- | -------- | ------------------------------ |
+| `N`      | No       | Insert after this phase number |
 
 ```bash
 /gsd-insert-phase 3                 # Insert between phase 3 and 4 → creates 3.1
@@ -396,9 +401,9 @@ Insert urgent work between phases using decimal numbering.
 
 Remove future phase and renumber subsequent phases.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | No | Phase number to remove |
+| Argument | Required | Description            |
+| -------- | -------- | ---------------------- |
+| `N`      | No       | Phase number to remove |
 
 ```bash
 /gsd-remove-phase 7                 # Remove phase 7, renumber 8→7, 9→8, etc.
@@ -408,9 +413,9 @@ Remove future phase and renumber subsequent phases.
 
 Preview Claude's intended approach before planning.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | No | Phase number |
+| Argument | Required | Description  |
+| -------- | -------- | ------------ |
+| `N`      | No       | Phase number |
 
 ```bash
 /gsd-list-phase-assumptions 2       # See assumptions for phase 2
@@ -430,6 +435,7 @@ Analyze phase dependencies and suggest `Depends on` entries for ROADMAP.md befor
 ```
 
 **Detection methods:**
+
 - File overlap — phases touching the same files/domains must be ordered
 - Semantic dependencies — a phase that consumes an API or schema built by another phase
 - Data flow — a phase that reads output produced by another phase
@@ -448,9 +454,9 @@ Create phases to close gaps from milestone audit.
 
 Deep ecosystem research only (standalone — usually use `/gsd-plan-phase` instead).
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | No | Phase number |
+| Argument | Required | Description  |
+| -------- | -------- | ------------ |
+| `N`      | No       | Phase number |
 
 ```bash
 /gsd-research-phase 4               # Research phase 4 domain
@@ -460,9 +466,9 @@ Deep ecosystem research only (standalone — usually use `/gsd-plan-phase` inste
 
 Retroactively audit and fill Nyquist validation gaps.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | No | Phase number |
+| Argument | Required | Description  |
+| -------- | -------- | ------------ |
+| `N`      | No       | Phase number |
 
 ```bash
 /gsd-validate-phase 2               # Audit test coverage for phase 2
@@ -502,10 +508,11 @@ Interactive command center for managing multiple phases from one terminal.
 
 **Prerequisites:** `.planning/ROADMAP.md` exists
 **Behavior:**
+
 - Dashboard of all phases with visual status indicators
 - Recommends optimal next actions based on dependencies and progress
-- Dispatches work: discuss runs inline, plan/execute run as background agents
-- Designed for power users parallelizing work across phases from one terminal
+- Dispatches work via delegated subagents: discuss、plan、execute 均不在主 agent 内直接执行
+- Enforces `completion_gate`: every key result must pass AskUserQuestion 或 ask_user before exit/continue
 - Supports per-step passthrough flags via `manager.flags` config (see [Configuration](CONFIGURATION.md#manager-passthrough-flags))
 
 ```bash
@@ -546,9 +553,9 @@ Show all commands and usage guide.
 
 Socratic ideation session — guide an idea through probing questions, optionally spawn research, then route output to the right GSD artifact (notes, todos, seeds, research questions, requirements, or a new phase).
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `topic` | No | Topic to explore (e.g., `/gsd-explore authentication strategy`) |
+| Argument | Required | Description                                                     |
+| -------- | -------- | --------------------------------------------------------------- |
+| `topic`  | No       | Topic to explore (e.g., `/gsd-explore authentication strategy`) |
 
 ```bash
 /gsd-explore                        # Open-ended ideation session
@@ -561,11 +568,11 @@ Socratic ideation session — guide an idea through probing questions, optionall
 
 Safe git revert — roll back GSD phase or plan commits using the phase manifest with dependency checks and a confirmation gate.
 
-| Flag | Required | Description |
-|------|----------|-------------|
-| `--last N` | (one of three required) | Show recent GSD commits for interactive selection |
-| `--phase NN` | (one of three required) | Revert all commits for a phase |
-| `--plan NN-MM` | (one of three required) | Revert all commits for a specific plan |
+| Flag           | Required                | Description                                       |
+| -------------- | ----------------------- | ------------------------------------------------- |
+| `--last N`     | (one of three required) | Show recent GSD commits for interactive selection |
+| `--phase NN`   | (one of three required) | Revert all commits for a phase                    |
+| `--plan NN-MM` | (one of three required) | Revert all commits for a specific plan            |
 
 **Safety:** Checks dependent phases/plans before reverting; always shows a confirmation gate.
 
@@ -581,9 +588,9 @@ Safe git revert — roll back GSD phase or plan commits using the phase manifest
 
 Ingest an external plan file into the GSD planning system with conflict detection against `PROJECT.md` decisions before writing anything.
 
-| Flag | Required | Description |
-|------|----------|-------------|
-| `--from <filepath>` | **Yes** | Path to the external plan file to import |
+| Flag                | Required | Description                              |
+| ------------------- | -------- | ---------------------------------------- |
+| `--from <filepath>` | **Yes**  | Path to the external plan file to import |
 
 **Process:** Detects conflicts → prompts for resolution → writes as GSD PLAN.md → validates via `gsd-plan-checker`
 
@@ -597,11 +604,11 @@ Ingest an external plan file into the GSD planning system with conflict detectio
 
 Execute ad-hoc task with GSD guarantees.
 
-| Flag | Description |
-|------|-------------|
-| `--full` | Enable plan checking (2 iterations) + post-execution verification |
-| `--discuss` | Lightweight pre-planning discussion |
-| `--research` | Spawn focused researcher before planning |
+| Flag         | Description                                                       |
+| ------------ | ----------------------------------------------------------------- |
+| `--full`     | Enable plan checking (2 iterations) + post-execution verification |
+| `--discuss`  | Lightweight pre-planning discussion                               |
+| `--research` | Spawn focused researcher before planning                          |
 
 Flags are composable.
 
@@ -614,13 +621,13 @@ Flags are composable.
 
 ### `/gsd-autonomous`
 
-Run all remaining phases autonomously.
+Run all remaining phases under the main-agent dispatch model.
 
-| Flag | Description |
-|------|-------------|
-| `--from N` | Start from a specific phase number |
-| `--to N` | Stop after completing a specific phase number |
-| `--interactive` | Lean context with user input |
+| Flag            | Description                                                                                |
+| --------------- | ------------------------------------------------------------------------------------------ |
+| `--from N`      | Start from a specific phase number                                                         |
+| `--to N`        | Stop after completing a specific phase number                                              |
+| `--interactive` | Lean context; discuss/plan/execute remain delegated to subagents with ask gate enforcement |
 
 ```bash
 /gsd-autonomous                     # Run all remaining phases
@@ -641,14 +648,14 @@ Route freeform text to the right GSD command.
 
 Zero-friction idea capture — append, list, or promote notes to todos.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `text` | No | Note text to capture (default: append mode) |
-| `list` | No | List all notes from project and global scopes |
-| `promote N` | No | Convert note N into a structured todo |
+| Argument    | Required | Description                                   |
+| ----------- | -------- | --------------------------------------------- |
+| `text`      | No       | Note text to capture (default: append mode)   |
+| `list`      | No       | List all notes from project and global scopes |
+| `promote N` | No       | Convert note N into a structured todo         |
 
-| Flag | Description |
-|------|-------------|
+| Flag       | Description                          |
+| ---------- | ------------------------------------ |
 | `--global` | Use global scope for note operations |
 
 ```bash
@@ -661,12 +668,12 @@ Zero-friction idea capture — append, list, or promote notes to todos.
 
 Systematic debugging with persistent state.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `description` | No | Description of the bug |
+| Argument      | Required | Description            |
+| ------------- | -------- | ---------------------- |
+| `description` | No       | Description of the bug |
 
-| Flag | Description |
-|------|-------------|
+| Flag         | Description                                                |
+| ------------ | ---------------------------------------------------------- |
 | `--diagnose` | Diagnosis-only mode — investigate without attempting fixes |
 
 ```bash
@@ -678,9 +685,9 @@ Systematic debugging with persistent state.
 
 Capture idea or task for later.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `description` | No | Todo description |
+| Argument      | Required | Description      |
+| ------------- | -------- | ---------------- |
+| `description` | No       | Todo description |
 
 ```bash
 /gsd-add-todo "Consider adding dark mode support"
@@ -698,9 +705,9 @@ List pending todos and select one to work on.
 
 Generate tests for a completed phase.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | No | Phase number |
+| Argument | Required | Description  |
+| -------- | -------- | ------------ |
+| `N`      | No       | Phase number |
 
 ```bash
 /gsd-add-tests 2                    # Generate tests for phase 2
@@ -718,12 +725,13 @@ Display project statistics.
 
 Generate a developer behavioral profile from Claude Code session analysis across 8 dimensions (communication style, decision patterns, debugging approach, UX preferences, vendor choices, frustration triggers, learning style, explanation depth). Produces artifacts that personalize Claude's responses.
 
-| Flag | Description |
-|------|-------------|
+| Flag              | Description                                               |
+| ----------------- | --------------------------------------------------------- |
 | `--questionnaire` | Use interactive questionnaire instead of session analysis |
-| `--refresh` | Re-analyze sessions and regenerate profile |
+| `--refresh`       | Re-analyze sessions and regenerate profile                |
 
 **Generated artifacts:**
+
 - `USER-PROFILE.md` — Full behavioral profile
 - `/gsd-dev-preferences` command — Load preferences in any session
 - `CLAUDE.md` profile section — Auto-discovered by Claude Code
@@ -738,8 +746,8 @@ Generate a developer behavioral profile from Claude Code session analysis across
 
 Validate `.planning/` directory integrity.
 
-| Flag | Description |
-|------|-------------|
+| Flag       | Description                 |
+| ---------- | --------------------------- |
 | `--repair` | Auto-fix recoverable issues |
 
 ```bash
@@ -763,14 +771,15 @@ Archive accumulated phase directories from completed milestones.
 
 Post-mortem investigation of failed or stuck GSD workflows.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `description` | No | Problem description (prompted if omitted) |
+| Argument      | Required | Description                               |
+| ------------- | -------- | ----------------------------------------- |
+| `description` | No       | Problem description (prompted if omitted) |
 
 **Prerequisites:** `.planning/` directory exists
 **Produces:** `.planning/forensics/report-{timestamp}.md`
 
 **Investigation covers:**
+
 - Git history analysis (recent commits, stuck patterns, time gaps)
 - Artifact integrity (expected files for completed phases)
 - STATE.md anomalies and session history
@@ -793,15 +802,15 @@ Manage parallel workstreams for concurrent work on different milestone areas.
 
 **Subcommands:**
 
-| Subcommand | Description |
-|------------|-------------|
-| `list` | List all workstreams with status (default if no subcommand) |
-| `create <name>` | Create a new workstream |
-| `status <name>` | Detailed status for one workstream |
-| `switch <name>` | Set active workstream |
-| `progress` | Progress summary across all workstreams |
-| `complete <name>` | Archive a completed workstream |
-| `resume <name>` | Resume work in a workstream |
+| Subcommand        | Description                                                 |
+| ----------------- | ----------------------------------------------------------- |
+| `list`            | List all workstreams with status (default if no subcommand) |
+| `create <name>`   | Create a new workstream                                     |
+| `status <name>`   | Detailed status for one workstream                          |
+| `switch <name>`   | Set active workstream                                       |
+| `progress`        | Progress summary across all workstreams                     |
+| `complete <name>` | Archive a completed workstream                              |
+| `resume <name>`   | Resume work in a workstream                                 |
 
 **Prerequisites:** Active GSD project
 **Produces:** Workstream directories under `.planning/`, state tracking per workstream
@@ -832,9 +841,9 @@ Interactive configuration of workflow toggles and model profile.
 
 Quick profile switch.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `profile` | **Yes** | `quality`, `balanced`, `budget`, or `inherit` |
+| Argument  | Required | Description                                   |
+| --------- | -------- | --------------------------------------------- |
+| `profile` | **Yes**  | `quality`, `balanced`, `budget`, or `inherit` |
 
 ```bash
 /gsd-set-profile budget             # Switch to budget profile
@@ -849,9 +858,9 @@ Quick profile switch.
 
 Analyze existing codebase with parallel mapper agents.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `area` | No | Scope mapping to a specific area |
+| Argument | Required | Description                      |
+| -------- | -------- | -------------------------------- |
+| `area`   | No       | Scope mapping to a specific area |
 
 ```bash
 /gsd-map-codebase                   # Full codebase analysis
@@ -864,8 +873,8 @@ Analyze existing codebase with parallel mapper agents.
 
 Rapid single-focus codebase assessment — lightweight alternative to `/gsd-map-codebase` that spawns one mapper agent instead of four parallel ones.
 
-| Flag | Description |
-|------|-------------|
+| Flag                                               | Description                       |
+| -------------------------------------------------- | --------------------------------- |
 | `--focus tech\|arch\|quality\|concerns\|tech+arch` | Focus area (default: `tech+arch`) |
 
 **Produces:** Targeted document(s) in `.planning/codebase/`
@@ -882,12 +891,12 @@ Rapid single-focus codebase assessment — lightweight alternative to `/gsd-map-
 
 Query, inspect, or refresh queryable codebase intelligence files stored in `.planning/intel/`. Requires `intel.enabled: true` in `config.json`.
 
-| Argument | Description |
-|----------|-------------|
-| `query <term>` | Search intel files for a term |
-| `status` | Show intel file freshness (FRESH/STALE) |
-| `diff` | Show changes since last snapshot |
-| `refresh` | Rebuild all intel files from codebase analysis |
+| Argument       | Description                                    |
+| -------------- | ---------------------------------------------- |
+| `query <term>` | Search intel files for a term                  |
+| `status`       | Show intel file freshness (FRESH/STALE)        |
+| `diff`         | Show changes since last snapshot               |
+| `refresh`      | Rebuild all intel files from codebase analysis |
 
 **Produces:** `.planning/intel/` JSON files (stack, api-map, dependency-graph, file-roles, arch-decisions)
 
@@ -926,11 +935,11 @@ Restore local modifications after a GSD update.
 
 Review source files changed during a phase for bugs, security vulnerabilities, and code quality problems.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | **Yes** | Phase number whose changes to review (e.g., `2` or `02`) |
-| `--depth=quick\|standard\|deep` | No | Review depth level (overrides `workflow.code_review_depth` config). `quick`: pattern-matching only (~2 min). `standard`: per-file analysis with language-specific checks (~5–15 min, default). `deep`: cross-file analysis including import graphs and call chains (~15–30 min) |
-| `--files file1,file2,...` | No | Explicit comma-separated file list; skips SUMMARY/git scoping entirely |
+| Argument                        | Required | Description                                                                                                                                                                                                                                                                     |
+| ------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `N`                             | **Yes**  | Phase number whose changes to review (e.g., `2` or `02`)                                                                                                                                                                                                                        |
+| `--depth=quick\|standard\|deep` | No       | Review depth level (overrides `workflow.code_review_depth` config). `quick`: pattern-matching only (~2 min). `standard`: per-file analysis with language-specific checks (~5–15 min, default). `deep`: cross-file analysis including import graphs and call chains (~15–30 min) |
+| `--files file1,file2,...`       | No       | Explicit comma-separated file list; skips SUMMARY/git scoping entirely                                                                                                                                                                                                          |
 
 **Prerequisites:** Phase has been executed and has SUMMARY.md or git history
 **Produces:** `{phase}-REVIEW.md` in phase directory with severity-classified findings
@@ -948,11 +957,11 @@ Review source files changed during a phase for bugs, security vulnerabilities, a
 
 Auto-fix issues found by `/gsd-code-review`. Reads `REVIEW.md`, spawns a fixer agent, commits each fix atomically, and produces a `REVIEW-FIX.md` summary.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `N` | **Yes** | Phase number whose REVIEW.md to fix |
-| `--all` | No | Include Info findings in fix scope (default: Critical + Warning only) |
-| `--auto` | No | Enable fix + re-review iteration loop, capped at 3 iterations |
+| Argument | Required | Description                                                           |
+| -------- | -------- | --------------------------------------------------------------------- |
+| `N`      | **Yes**  | Phase number whose REVIEW.md to fix                                   |
+| `--all`  | No       | Include Info findings in fix scope (default: Critical + Warning only) |
+| `--auto` | No       | Enable fix + re-review iteration loop, capped at 3 iterations         |
 
 **Prerequisites:** Phase has a `{phase}-REVIEW.md` file (run `/gsd-code-review` first)
 **Produces:** `{phase}-REVIEW-FIX.md` with applied fixes summary
@@ -970,12 +979,12 @@ Auto-fix issues found by `/gsd-code-review`. Reads `REVIEW.md`, spawns a fixer a
 
 Autonomous audit-to-fix pipeline — runs an audit, classifies findings, fixes auto-fixable issues with test verification, and commits each fix atomically.
 
-| Flag | Description |
-|------|-------------|
-| `--source <audit>` | Which audit to run (default: `audit-uat`) |
-| `--severity high\|medium\|all` | Minimum severity to process (default: `medium`) |
-| `--max N` | Maximum findings to fix (default: 5) |
-| `--dry-run` | Classify findings without fixing (shows classification table) |
+| Flag                           | Description                                                   |
+| ------------------------------ | ------------------------------------------------------------- |
+| `--source <audit>`             | Which audit to run (default: `audit-uat`)                     |
+| `--severity high\|medium\|all` | Minimum severity to process (default: `medium`)               |
+| `--max N`                      | Maximum findings to fix (default: 5)                          |
+| `--dry-run`                    | Classify findings without fixing (shows classification table) |
 
 **Prerequisites:** At least one phase has been executed with UAT or verification
 **Produces:** Fix commits with test verification; classification report
@@ -995,9 +1004,9 @@ Autonomous audit-to-fix pipeline — runs an audit, classifies findings, fixes a
 
 Execute a trivial task inline — no subagents, no planning overhead. For typo fixes, config changes, small refactors, forgotten commits.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `task description` | No | What to do (prompted if omitted) |
+| Argument           | Required | Description                      |
+| ------------------ | -------- | -------------------------------- |
+| `task description` | No       | What to do (prompted if omitted) |
 
 **Not a replacement for `/gsd-quick`** — use `/gsd-quick` for anything needing research, multi-step planning, or verification.
 
@@ -1012,18 +1021,18 @@ Execute a trivial task inline — no subagents, no planning overhead. For typo f
 
 Cross-AI peer review of phase plans from external AI CLIs.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `--phase N` | **Yes** | Phase number to review |
+| Argument    | Required | Description            |
+| ----------- | -------- | ---------------------- |
+| `--phase N` | **Yes**  | Phase number to review |
 
-| Flag | Description |
-|------|-------------|
-| `--gemini` | Include Gemini CLI review |
-| `--claude` | Include Claude CLI review (separate session) |
-| `--codex` | Include Codex CLI review |
-| `--coderabbit` | Include CodeRabbit review |
-| `--opencode` | Include OpenCode review (via GitHub Copilot) |
-| `--all` | Include all available CLIs |
+| Flag           | Description                                  |
+| -------------- | -------------------------------------------- |
+| `--gemini`     | Include Gemini CLI review                    |
+| `--claude`     | Include Claude CLI review (separate session) |
+| `--codex`      | Include Codex CLI review                     |
+| `--coderabbit` | Include CodeRabbit review                    |
+| `--opencode`   | Include OpenCode review (via GitHub Copilot) |
+| `--all`        | Include all available CLIs                   |
 
 **Produces:** `{phase}-REVIEWS.md` — consumable by `/gsd-plan-phase --reviews`
 
@@ -1038,9 +1047,9 @@ Cross-AI peer review of phase plans from external AI CLIs.
 
 Create a clean PR branch by filtering out `.planning/` commits.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `target branch` | No | Base branch (default: `main`) |
+| Argument        | Required | Description                   |
+| --------------- | -------- | ----------------------------- |
+| `target branch` | No       | Base branch (default: `main`) |
 
 **Purpose:** Reviewers see only code changes, not GSD planning artifacts.
 
@@ -1068,15 +1077,16 @@ Cross-phase audit of all outstanding UAT and verification items.
 
 Retroactively verify threat mitigations for a completed phase.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `phase number` | No | Phase to audit (default: last completed phase) |
+| Argument       | Required | Description                                    |
+| -------------- | -------- | ---------------------------------------------- |
+| `phase number` | No       | Phase to audit (default: last completed phase) |
 
 **Prerequisites:** Phase must have been executed. Works with or without existing SECURITY.md.
 **Produces:** `{phase}-SECURITY.md` with threat verification results
 **Spawns:** `gsd-security-auditor` agent
 
 Three operating modes:
+
 1. SECURITY.md exists — audit and verify existing mitigations
 2. No SECURITY.md but PLAN.md has threat model — generate from artifacts
 3. Phase not executed — exits with guidance
@@ -1092,10 +1102,10 @@ Three operating modes:
 
 Generate or update project documentation verified against the codebase.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `--force` | No | Skip preservation prompts, regenerate all docs |
-| `--verify-only` | No | Check existing docs for accuracy, no generation |
+| Argument        | Required | Description                                     |
+| --------------- | -------- | ----------------------------------------------- |
+| `--force`       | No       | Skip preservation prompts, regenerate all docs  |
+| `--verify-only` | No       | Check existing docs for accuracy, no generation |
 
 **Produces:** Up to 9 documentation files (README, architecture, API, getting started, development, testing, configuration, deployment, contributing)
 **Spawns:** `gsd-doc-writer` agents (one per doc type), then `gsd-doc-verifier` agents for factual verification
@@ -1116,9 +1126,9 @@ Each doc writer explores the codebase directly — no hallucinated paths or stal
 
 Add an idea to the backlog parking lot using 999.x numbering.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `description` | **Yes** | Backlog item description |
+| Argument      | Required | Description              |
+| ------------- | -------- | ------------------------ |
+| `description` | **Yes**  | Backlog item description |
 
 **999.x numbering** keeps backlog items outside the active phase sequence. Phase directories are created immediately so `/gsd-discuss-phase` and `/gsd-plan-phase` work on them.
 
@@ -1145,9 +1155,9 @@ Review and promote backlog items to active milestone.
 
 Capture a forward-looking idea with trigger conditions — surfaces automatically at the right milestone.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `idea summary` | No | Seed description (prompted if omitted) |
+| Argument       | Required | Description                            |
+| -------------- | -------- | -------------------------------------- |
+| `idea summary` | No       | Seed description (prompted if omitted) |
 
 Seeds solve context rot: instead of a one-liner in Deferred that nobody reads, a seed preserves the full WHY, WHEN to surface, and breadcrumbs to details.
 
@@ -1164,11 +1174,11 @@ Seeds solve context rot: instead of a one-liner in Deferred that nobody reads, a
 
 Manage persistent context threads for cross-session work.
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| (none) | — | List all threads |
-| `name` | — | Resume existing thread by name |
-| `description` | — | Create new thread |
+| Argument      | Required | Description                    |
+| ------------- | -------- | ------------------------------ |
+| (none)        | —        | List all threads               |
+| `name`        | —        | Resume existing thread by name |
+| `description` | —        | Create new thread              |
 
 Threads are lightweight cross-session knowledge stores for work that spans multiple sessions but doesn't belong to any specific phase. Lighter weight than `/gsd-pause-work`.
 
@@ -1199,8 +1209,8 @@ node gsd-tools.cjs state validate
 
 Reconstruct STATE.md from actual project state on disk.
 
-| Flag | Description |
-|------|-------------|
+| Flag       | Description                                          |
+| ---------- | ---------------------------------------------------- |
 | `--verify` | Dry-run mode — show proposed changes without writing |
 
 **Prerequisites:** `.planning/` directory exists
@@ -1217,10 +1227,10 @@ node gsd-tools.cjs state sync --verify    # Dry-run: show changes without writin
 
 Record state transition after plan-phase completes (Planned/Ready to execute).
 
-| Flag | Description |
-|------|-------------|
+| Flag        | Description                   |
+| ----------- | ----------------------------- |
 | `--phase N` | Phase number that was planned |
-| `--plans N` | Number of plans generated |
+| `--plans N` | Number of plans generated     |
 
 **Prerequisites:** Phase has been planned
 **Produces:** Updated `STATE.md` with post-planning state
@@ -1237,13 +1247,14 @@ node gsd-tools.cjs state planned-phase --phase 3 --plans 2
 
 Optional git and session hooks gated behind `hooks.community: true` in `.planning/config.json`. All are no-ops unless explicitly enabled.
 
-| Hook | Purpose |
-|------|---------|
+| Hook                     | Purpose                                                    |
+| ------------------------ | ---------------------------------------------------------- |
 | `gsd-validate-commit.sh` | Enforce Conventional Commits format on git commit messages |
-| `gsd-session-state.sh` | Track session state transitions |
-| `gsd-phase-boundary.sh` | Enforce phase boundary checks |
+| `gsd-session-state.sh`   | Track session state transitions                            |
+| `gsd-phase-boundary.sh`  | Enforce phase boundary checks                              |
 
 Enable with:
+
 ```json
 { "hooks": { "community": true } }
 ```

@@ -32,6 +32,10 @@ allowed-tools:
 @~/.claude/get-shit-done/references/ui-brand.md
 </execution_context>
 
+<runtime_note>
+**Copilot (VS Code):** Use `vscode_askquestions` wherever this workflow calls `AskUserQuestion`. They are equivalent for dashboard decisions and completion gate prompts.
+</runtime_note>
+
 <context>
 No arguments required. Requires an active milestone with ROADMAP.md and STATE.md.
 

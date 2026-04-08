@@ -346,6 +346,7 @@ prompt="执行第 {N} 阶段实施流程。
 
 - **question:** "关键结果已返回：{gate_reason}。请选择后续动作。"
 - **options:** "继续主流程" / "查看详情后继续" / "停止并退出"
+- **runtime_fallback:** Copilot 使用 `vscode_askquestions` 等价实现 AskUserQuestion。
 
 规则：
 

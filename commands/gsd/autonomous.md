@@ -33,6 +33,10 @@ allowed-tools:
 @~/.claude/get-shit-done/references/ui-brand.md
 </execution_context>
 
+<runtime_note>
+**Copilot (VS Code):** Use `vscode_askquestions` wherever this workflow calls `AskUserQuestion`. They are equivalent for the completion gate and blocker decision branches.
+</runtime_note>
+
 <context>
 Optional flags:
 - `--from N` — start from phase N instead of the first incomplete phase.
