@@ -291,6 +291,34 @@ describe('convertClaudeToCopilotContent', () => {
     );
   });
 
+  test('replaces bare ~/.claude with .github in local mode (default)', () => {
+    assert.strictEqual(
+      convertClaudeToCopilotContent('"~/.claude"'),
+      '".github"'
+    );
+  });
+
+  test('replaces bare ~/.claude with ~/.copilot in global mode', () => {
+    assert.strictEqual(
+      convertClaudeToCopilotContent('"~/.claude"', true),
+      '"~/.copilot"'
+    );
+  });
+
+  test('replaces bare $HOME/.claude with .github in local mode (default)', () => {
+    assert.strictEqual(
+      convertClaudeToCopilotContent('"$HOME/.claude"'),
+      '".github"'
+    );
+  });
+
+  test('replaces bare $HOME/.claude with $HOME/.copilot in global mode', () => {
+    assert.strictEqual(
+      convertClaudeToCopilotContent('"$HOME/.claude"', true),
+      '"$HOME/.copilot"'
+    );
+  });
+
   test('converts gsd: to gsd- in command names', () => {
     assert.strictEqual(
       convertClaudeToCopilotContent('run /gsd:health or gsd:progress'),
@@ -1104,7 +1132,7 @@ describe('Copilot manifest and patches fixes', () => {
 // E2E Integration Tests — Copilot Install & Uninstall
 // ============================================================================
 
-const { execFileSync } = require('child_process');
+const { execFileSync, spawnSync } = require('child_process');
 const crypto = require('crypto');
 
 const INSTALL_PATH = path.join(__dirname, '..', 'bin', 'install.js');
@@ -1135,6 +1163,17 @@ function runCopilotUninstall(cwd) {
   });
 }
 
+function runCopilotInstallWithLogs(cwd) {
+  const env = { ...process.env };
+  delete env.GSD_TEST_MODE;
+  return spawnSync(process.execPath, [INSTALL_PATH, '--copilot', '--local'], {
+    cwd,
+    encoding: 'utf-8',
+    env,
+  });
+}
+
+
 describe('E2E: Copilot full install verification', () => {
   let tmpDir;
 
@@ -1146,6 +1185,98 @@ describe('E2E: Copilot full install verification', () => {
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
+
+  test('install logs and generated markdown do not leak ~/.claude paths', () => {
+    const reinstallDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gsd-e2e-log-'));
+    try {
+      const installResult = runCopilotInstallWithLogs(reinstallDir);
+      assert.strictEqual(installResult.status, 0, `Install should succeed: ${installResult.stderr || installResult.stdout || ''}`);
+
+      const output = `${installResult.stdout || ''}\n${installResult.stderr || ''}`;
+      assert.ok(
+        !output.includes('unreplaced .claude path reference'),
+        `Install output should not contain unreplaced .claude warning, got:\n${output}`
+      );
+
+      const leakRegex = /(?:~|\$HOME)\/\.claude\b/g;
+      const leakedFiles = [];
+      const githubDir = path.join(reinstallDir, '.github');
+
+      function scanForLeakedClaudePaths(dir) {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name);
+          if (entry.isDirectory()) {
+            scanForLeakedClaudePaths(fullPath);
+            continue;
+          }
+
+          if ((entry.name.endsWith('.md') || entry.name.endsWith('.toml')) && entry.name !== 'CHANGELOG.md') {
+            const content = fs.readFileSync(fullPath, 'utf8');
+            if (leakRegex.test(content)) {
+              leakedFiles.push(path.relative(reinstallDir, fullPath));
+            }
+            leakRegex.lastIndex = 0;
+          }
+        }
+      }
+
+      scanForLeakedClaudePaths(githubDir);
+      assert.deepStrictEqual(leakedFiles, [], `Expected no leaked ~/.claude references, found: ${leakedFiles.join(', ')}`);
+    } finally {
+      fs.rmSync(reinstallDir, { recursive: true, force: true });
+    }
+  });
+
+  test('global install command does not emit unreplaced .claude warning', () => {
+    const globalHomeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gsd-e2e-global-'));
+    try {
+      const env = { ...process.env, HOME: globalHomeDir };
+      delete env.GSD_TEST_MODE;
+      const installResult = spawnSync(
+        process.execPath,
+        [INSTALL_PATH, '--copilot', '--global', '--config-dir', '~/.copilot'],
+        {
+          cwd: globalHomeDir,
+          encoding: 'utf-8',
+          env,
+        }
+      );
+
+      assert.strictEqual(installResult.status, 0, `Global install should succeed: ${installResult.stderr || installResult.stdout || ''}`);
+      const output = `${installResult.stdout || ''}\n${installResult.stderr || ''}`;
+      assert.ok(!output.includes('unreplaced .claude path reference'), `Global install should not emit unreplaced .claude warning, got:\n${output}`);
+
+      const leakRegex = /(?:~|\$HOME)\/\.claude\b/g;
+      const leakedFiles = [];
+      const copilotDir = path.join(globalHomeDir, '.copilot');
+
+      function scanGlobalInstallLeaks(dir) {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name);
+          if (entry.isDirectory()) {
+            scanGlobalInstallLeaks(fullPath);
+            continue;
+          }
+
+          if ((entry.name.endsWith('.md') || entry.name.endsWith('.toml')) && entry.name !== 'CHANGELOG.md') {
+            const content = fs.readFileSync(fullPath, 'utf8');
+            if (leakRegex.test(content)) {
+              leakedFiles.push(path.relative(globalHomeDir, fullPath));
+            }
+            leakRegex.lastIndex = 0;
+          }
+        }
+      }
+
+      scanGlobalInstallLeaks(copilotDir);
+      assert.deepStrictEqual(leakedFiles, [], `Expected no leaked ~/.claude references in global install, found: ${leakedFiles.join(', ')}`);
+    } finally {
+      fs.rmSync(globalHomeDir, { recursive: true, force: true });
+    }
+  });
+
 
   test('installs expected number of skill directories', () => {
     const skillsDir = path.join(tmpDir, '.github', 'skills');

@@ -785,10 +785,13 @@ function convertClaudeToCopilotContent(content, isGlobal = false) {
   if (isGlobal) {
     c = c.replace(/\$HOME\/\.claude\//g, '$HOME/.copilot/');
     c = c.replace(/~\/\.claude\//g, '~/.copilot/');
+    c = c.replace(/\$HOME\/\.claude\b/g, '$HOME/.copilot');
+    c = c.replace(/~\/\.claude\b/g, '~/.copilot');
   } else {
     c = c.replace(/\$HOME\/\.claude\//g, '.github/');
     c = c.replace(/~\/\.claude\//g, '.github/');
-    c = c.replace(/~\/\.claude\n/g, '.github/');
+    c = c.replace(/\$HOME\/\.claude\b/g, '.github');
+    c = c.replace(/~\/\.claude\b/g, '.github');
   }
   c = c.replace(/\.\/\.claude\//g, './.github/');
   c = c.replace(/\.claude\//g, '.github/');
