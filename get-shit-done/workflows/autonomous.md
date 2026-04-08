@@ -1,6 +1,6 @@
 <purpose>
 
-采用主 agent 调度模式驱动里程碑阶段执行。主 agent 仅负责阶段发现、子代理分派、结果汇总与决策闸门；discuss、plan、execute、review、lifecycle 执行动作全部委派子代理。每轮关键结果返回后必须进入 completion_gate，通过 AskUserQuestion 或 ask_user 决策后才可继续或结束。
+Drive milestone phases autonomously — all remaining phases, a range via `--from N`/`--to N`, or a single phase via `--only N`. For each incomplete phase: discuss → plan → execute using Skill() flat invocations. Pauses only for explicit user decisions (grey area acceptance, blockers, validation requests). Re-reads ROADMAP.md after each phase to catch dynamically inserted phases.
 
 </purpose>
 
@@ -43,13 +43,7 @@ fi
 
 When `--only` is set, also set `FROM_PHASE` to the same value so existing filter logic applies.
 
-When `--interactive` is set, discuss 仍通过子代理执行（交互提问在子代理内完成），plan 与 execute 继续由后台子代理执行。主 agent 仅负责调度与关键结果汇总。
-
-**主 agent 调度约束：**
-
-1. 主 agent 禁止直接执行任何阶段实现动作，仅可发起 Agent 子代理。
-2. 任一子代理返回关键结果后，必须先进入 `completion_gate`。
-3. 未经过 `AskUserQuestion` 或 `ask_user` 不得结束当前轮次与流程。
+When `--interactive` is set, discuss runs inline with questions (not auto-answered), while plan and execute are dispatched as background agents. This keeps the main context lean — only discuss conversations accumulate — while preserving user input on all design decisions.
 
 Bootstrap via milestone-level init:
 
@@ -77,7 +71,7 @@ Display startup banner:
 If `ONLY_PHASE` is set, display: `Single phase mode: Phase ${ONLY_PHASE}`
 Else if `FROM_PHASE` is set, display: `Starting from phase ${FROM_PHASE}`
 If `TO_PHASE` is set, display: `Stopping after phase ${TO_PHASE}`
-If `INTERACTIVE` is set, display: `Mode: Interactive（discuss 委派子代理，plan+execute 后台子代理）`
+If `INTERACTIVE` is set, display: `Mode: Interactive (discuss inline, plan+execute in background)`
 
 </step>
 
@@ -226,13 +220,11 @@ Extract `goal` and `requirements` from JSON. Write `${phase_dir}/${padded_phase}
 ## Implementation Decisions
 
 ### Claude's Discretion
-
 All implementation choices are at Claude's discretion — discuss phase was skipped per user setting. Use ROADMAP phase goal, success criteria, and codebase conventions to guide decisions.
 
 </decisions>
 
 <code_context>
-
 ## Existing Code Insights
 
 Codebase context will be gathered during plan-phase research.
@@ -267,25 +259,13 @@ Proceed to 3b.
 **IMPORTANT — Discuss must be single-pass in autonomous mode.**
 The discuss step in `--auto` mode MUST NOT loop. If CONTEXT.md already exists after discuss completes, do NOT re-invoke discuss for the same phase. The `has_context` check below is authoritative — once true, discuss is done for this phase regardless of perceived "gaps" in the context file.
 
-**If `INTERACTIVE` is set:** 以前台子代理方式委派 discuss，并在子代理内完成交互提问：
+**If `INTERACTIVE` is set:** Run the standard discuss-phase skill inline (asks interactive questions, waits for user answers). This preserves user input on all design decisions while keeping plan+execute out of the main context:
 
 ```
-Agent(
-  description="Discuss phase ${PHASE_NUM}: ${PHASE_NAME}（interactive）",
-  run_in_background=false,
-  prompt="执行 discuss-phase（交互模式）：Skill(skill=\"gsd:discuss-phase\", args=\"${PHASE_NUM}\")"
-)
+Skill(skill="gsd:discuss-phase", args="${PHASE_NUM}")
 ```
 
-**If `INTERACTIVE` is NOT set:** 以后台子代理方式委派 discuss（自动模式）：
-
-```
-Agent(
-  description="Discuss phase ${PHASE_NUM}: ${PHASE_NAME}（auto）",
-  run_in_background=true,
-  prompt="执行 discuss-phase（自动模式）：Skill(skill=\"gsd:discuss-phase\", args=\"${PHASE_NUM} --auto\")"
-)
-```
+**If `INTERACTIVE` is NOT set:** Execute the smart_discuss step for this phase (batch table proposals, auto-optimized).
 
 After discuss completes (either mode), verify context was written:
 
@@ -321,14 +301,10 @@ Phase ${PHASE_NUM}: Frontend phase detected — generating UI design contract...
 ```
 
 ```
-Agent(
-  description="UI design contract phase ${PHASE_NUM}",
-  run_in_background=true,
-  prompt="Skill(skill=\"gsd-ui-phase\", args=\"${PHASE_NUM}\")"
-)
+Skill(skill="gsd-ui-phase", args="${PHASE_NUM}")
 ```
 
-等待 ui-phase 子代理返回后，再校验 UI-SPEC 是否生成：
+Verify UI-SPEC was created:
 
 ```bash
 UI_SPEC_FILE=$(ls "${PHASE_DIR}"/*-UI-SPEC.md 2>/dev/null | head -1)
@@ -340,7 +316,7 @@ UI_SPEC_FILE=$(ls "${PHASE_DIR}"/*-UI-SPEC.md 2>/dev/null | head -1)
 
 **3b. Plan**
 
-主 agent 不直接执行 plan，统一委派子代理：
+**If `INTERACTIVE` is set:** Dispatch plan as a background agent to keep the main context lean. While plan runs, the workflow can immediately start discussing the next phase (see step 4).
 
 ```
 Agent(
@@ -350,13 +326,19 @@ Agent(
 )
 ```
 
-等待 plan 子代理返回结果。返回后必须进入 `completion_gate`。
+Store the agent task_id. After discuss for the next phase completes (or if no next phase), wait for the plan agent to finish before proceeding to execute.
 
-若结果为失败、超时或部分完成，进入 `handle_blocker` 并携带失败类型。
+**If `INTERACTIVE` is NOT set (default):** Run plan inline as before.
+
+```
+Skill(skill="gsd-plan-phase", args="${PHASE_NUM}")
+```
+
+Verify plan produced output — re-run `init phase-op` and check `has_plans`. If false → go to handle_blocker: "Plan phase ${PHASE_NUM} did not produce any plans."
 
 **3c. Execute**
 
-主 agent 不直接执行 execute，统一委派子代理：
+**If `INTERACTIVE` is set:** Wait for the plan agent to complete (if not already), verify plans exist, then dispatch execute as a background agent:
 
 ```
 Agent(
@@ -366,39 +348,34 @@ Agent(
 )
 ```
 
-等待 execute 子代理返回结果。返回后先进入 `completion_gate`，再进入 3d 读取验证结果。
+Store the agent task_id. The workflow can now start discussing the next phase while this phase executes in the background. Before starting post-execution routing for this phase, wait for the execute agent to complete.
+
+**If `INTERACTIVE` is NOT set (default):** Run execute inline as before.
+
+```
+Skill(skill="gsd-execute-phase", args="${PHASE_NUM} --no-transition")
+```
 
 **3c.5. Code Review and Fix**
 
-代码审查与修复由子代理执行，主 agent 仅调度。
+Auto-invoke code review and fix chain. Autonomous mode chains both review and fix (unlike execute-phase/quick which only suggest fix).
 
 **Config gate:**
-
 ```bash
 CODE_REVIEW_ENABLED=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow.code_review 2>/dev/null || echo "true")
 ```
-
 If `"false"`: display "Code review skipped (workflow.code_review=false)" and proceed to 3d.
 
 ```
-Agent(
-  description="Code review phase ${PHASE_NUM}: ${PHASE_NAME}",
-  run_in_background=true,
-  prompt="Run code-review for phase ${PHASE_NUM}: Skill(skill=\"gsd:code-review\", args=\"${PHASE_NUM}\")"
-)
+Skill(skill="gsd:code-review", args="${PHASE_NUM}")
 ```
 
-若审查结果有问题，继续委派修复子代理：
-
+Parse status from REVIEW.md frontmatter. If "clean" or "skipped": proceed to 3d. If findings found: auto-invoke:
 ```
-Agent(
-  description="Code review fix phase ${PHASE_NUM}: ${PHASE_NAME}",
-  run_in_background=true,
-  prompt="Run code-review-fix for phase ${PHASE_NUM}: Skill(skill=\"gsd:code-review-fix\", args=\"${PHASE_NUM} --auto\")"
-)
+Skill(skill="gsd:code-review-fix", args="${PHASE_NUM} --auto")
 ```
 
-每次返回都先进入 `completion_gate`。失败、超时、部分完成统一转入 `handle_blocker`。
+**Error handling:** If either Skill fails, catch the error, display as non-blocking, and proceed to 3d.
 
 **3d. Post-Execution Routing**
 
@@ -425,74 +402,74 @@ Go to handle_blocker: "Execute phase ${PHASE_NUM} did not produce verification r
 **If `passed`:**
 
 Display:
-
 ```
 Phase ${PHASE_NUM} ✅ ${PHASE_NAME} — Verification passed
 ```
 
-进入 `completion_gate`，由 AskUserQuestion 或 ask_user 决定是否进入 iterate。
+Proceed to iterate step.
 
 **If `human_needed`:**
 
 Read the human_verification section from VERIFICATION.md to get the count and items requiring manual testing.
 
 Display the items, then ask user via AskUserQuestion:
-
 - **question:** "Phase ${PHASE_NUM} has items needing manual verification. Validate now or continue to next phase?"
 - **options:** "Validate now" / "Continue without validation"
 
 On **"Validate now"**: Present the specific items from VERIFICATION.md's human_verification section. After user reviews, ask:
-
 - **question:** "Validation result?"
 - **options:** "All good — continue" / "Found issues"
 
-On "All good — continue": Display `Phase ${PHASE_NUM} ✅ Human validation passed`，再进入 `completion_gate`。
+On "All good — continue": Display `Phase ${PHASE_NUM} ✅ Human validation passed` and proceed to iterate step.
 
 On "Found issues": Go to handle_blocker with the user's reported issues as the description.
 
-On **"Continue without validation"**: Display `Phase ${PHASE_NUM} ⏭ Human validation deferred`，再进入 `completion_gate`。
+On **"Continue without validation"**: Display `Phase ${PHASE_NUM} ⏭ Human validation deferred` and proceed to iterate step.
 
 **If `gaps_found`:**
 
 Read gap summary from VERIFICATION.md (score and missing items). Display:
-
 ```
 ⚠ Phase ${PHASE_NUM}: ${PHASE_NAME} — Gaps Found
 Score: {N}/{M} must-haves verified
 ```
 
 Ask user via AskUserQuestion:
-
 - **question:** "Gaps found in phase ${PHASE_NUM}. How to proceed?"
 - **options:** "Run gap closure" / "Continue without fixing" / "Stop autonomous mode"
 
-On **"Run gap closure"**: 委派补缺口子代理，最多 1 次：
+On **"Run gap closure"**: Execute gap closure cycle (limit: 1 attempt):
 
 ```
-Agent(
-  description="Gap plan phase ${PHASE_NUM}",
-  run_in_background=true,
-  prompt="Skill(skill=\"gsd-plan-phase\", args=\"${PHASE_NUM} --gaps\")"
-)
+Skill(skill="gsd-plan-phase", args="${PHASE_NUM} --gaps")
 ```
 
+Verify gap plans were created — re-run `init phase-op ${PHASE_NUM}` and check `has_plans`. If no new gap plans → go to handle_blocker: "Gap closure planning for phase ${PHASE_NUM} did not produce plans."
+
+Re-execute:
 ```
-Agent(
-  description="Gap execute phase ${PHASE_NUM}",
-  run_in_background=true,
-  prompt="Skill(skill=\"gsd-execute-phase\", args=\"${PHASE_NUM} --no-transition\")"
-)
+Skill(skill="gsd-execute-phase", args="${PHASE_NUM} --no-transition")
 ```
 
-若补缺口后仍为 `gaps_found`、`timeout`、`partial` 或 `failed`，进入 `handle_blocker`。
+Re-read verification status:
+```bash
+VERIFY_STATUS=$(grep "^status:" "${PHASE_DIR}"/*-VERIFICATION.md 2>/dev/null | head -1 | cut -d: -f2 | tr -d ' ')
+```
 
-On **"Continue without fixing"**: Display `Phase ${PHASE_NUM} ⏭ Gaps deferred`，再进入 `completion_gate`。
+If `passed` or `human_needed`: Route normally (continue or ask user as above).
+
+If still `gaps_found` after this retry: Display "Gaps persist after closure attempt." and ask via AskUserQuestion:
+- **question:** "Gap closure did not fully resolve issues. How to proceed?"
+- **options:** "Continue anyway" / "Stop autonomous mode"
+
+On "Continue anyway": Proceed to iterate step.
+On "Stop autonomous mode": Go to handle_blocker.
+
+This limits gap closure to 1 automatic retry to prevent infinite loops.
+
+On **"Continue without fixing"**: Display `Phase ${PHASE_NUM} ⏭ Gaps deferred` and proceed to iterate step.
 
 On **"Stop autonomous mode"**: Go to handle_blocker with "User stopped — gaps remain in phase ${PHASE_NUM}".
-
-**If VERIFY_STATUS is `timeout` / `partial` / `failed`:**
-
-Go to handle_blocker with `result_type=${VERIFY_STATUS}` and include recovery guidance.
 
 **3d.5. UI Review (Frontend Phases)**
 
@@ -519,11 +496,7 @@ Phase ${PHASE_NUM}: Frontend phase with UI-SPEC — running UI review audit...
 ```
 
 ```
-Agent(
-  description="UI review phase ${PHASE_NUM}",
-  run_in_background=true,
-  prompt="Skill(skill=\"gsd-ui-review\", args=\"${PHASE_NUM}\")"
-)
+Skill(skill="gsd-ui-review", args="${PHASE_NUM}")
 ```
 
 Display the review result summary (score from UI-REVIEW.md if produced). Continue to iterate step regardless of score — UI review is advisory, not blocking.
@@ -563,7 +536,6 @@ cat .planning/STATE.md 2>/dev/null || true
 ```
 
 Extract from these:
-
 - **PROJECT.md** — Vision, principles, non-negotiables, user preferences
 - **REQUIREMENTS.md** — Acceptance criteria, constraints, must-haves vs nice-to-haves
 - **STATE.md** — Current progress, decisions logged so far
@@ -575,7 +547,6 @@ Extract from these:
 ```
 
 For each CONTEXT.md where phase number < current phase:
-
 - Read the `<decisions>` section — these are locked preferences
 - Read `<specifics>` — particular references or "I want it like X" moments
 - Note patterns (e.g., "user consistently prefers minimal UI", "user rejected verbose output")
@@ -623,7 +594,6 @@ ls src/components/ src/hooks/ src/lib/ src/utils/ 2>/dev/null || true
 Read the 3-5 most relevant files to understand existing patterns.
 
 **Build internal codebase_context** (do not write to file):
-
 - **Reusable assets** — existing components, hooks, utilities usable in this phase
 - **Established patterns** — how the codebase does state management, styling, data fetching
 - **Integration points** — where new code connects (routes, nav, providers)
@@ -643,7 +613,6 @@ Extract `goal`, `requirements`, `success_criteria` from the JSON response.
 **Infrastructure detection — check FIRST before generating grey areas:**
 
 A phase is pure infrastructure when ALL of these are true:
-
 1. Goal keywords match: "scaffolding", "plumbing", "setup", "configuration", "migration", "refactor", "rename", "restructure", "upgrade", "infrastructure"
 2. AND success criteria are all technical: "file exists", "test passes", "config valid", "command runs"
 3. AND no user-facing behavior is described (no "users can", "displays", "shows", "presents")
@@ -655,7 +624,6 @@ Phase ${PHASE_NUM}: Infrastructure phase — skipping discuss, writing minimal c
 ```
 
 Use these defaults for the CONTEXT.md:
-
 - `<domain>`: Phase boundary from ROADMAP goal
 - `<decisions>`: Single "### Claude's Discretion" subsection — "All implementation choices are at Claude's discretion — pure infrastructure phase"
 - `<code_context>`: Whatever the codebase scout found
@@ -665,7 +633,6 @@ Use these defaults for the CONTEXT.md:
 **If NOT infrastructure — generate grey area proposals:**
 
 Determine domain type from the phase goal:
-
 - Something users **SEE** → visual: layout, interactions, states, density
 - Something users **CALL** → interface: contracts, responses, errors, auth
 - Something users **RUN** → execution: invocation, output, behavior modes, flags
@@ -675,7 +642,6 @@ Determine domain type from the phase goal:
 Check prior_decisions — skip grey areas already decided in prior phases.
 
 Generate **3-4 grey areas** with **~4 questions each**. For each question:
-
 - **Pre-select a recommended answer** based on: prior decisions (consistency), codebase patterns (reuse), domain conventions (standard approaches), ROADMAP success criteria
 - Generate **1-2 alternatives** per question
 - **Annotate** with prior decision context ("You decided X in Phase N") and code context ("Component Y exists with Z variants") where relevant
@@ -700,7 +666,6 @@ Display a table:
 ```
 
 Then prompt the user via **AskUserQuestion**:
-
 - **header:** "Area {M}/{N}"
 - **question:** "Accept these answers for {Area Name}?"
 - **options:** Build dynamically — always "Accept all" first, then "Change Q1" through "Change QN" for each question (up to 4), then "Discuss deeper" last. Cap at 6 explicit options max (AskUserQuestion adds "Other" automatically).
@@ -708,7 +673,6 @@ Then prompt the user via **AskUserQuestion**:
 **On "Accept all":** Record all recommended answers for this area. Move to next area.
 
 **On "Change QN":** Use AskUserQuestion with the alternatives for that specific question:
-
 - **header:** "{Area Name}"
 - **question:** "Q{N}: {question text}"
 - **options:** List the 1-2 alternatives plus "You decide" (maps to Claude's Discretion)
@@ -716,7 +680,6 @@ Then prompt the user via **AskUserQuestion**:
 Record the user's choice. Re-display the updated table with the change reflected. Re-present the full acceptance prompt so the user can make additional changes or accept.
 
 **On "Discuss deeper":** Switch to interactive mode for this area only — ask questions one at a time using AskUserQuestion with 2-3 concrete options per question plus "You decide". After 4 questions, prompt:
-
 - **header:** "{Area Name}"
 - **question:** "More questions about {area name}, or move to next?"
 - **options:** "More questions" / "Next area"
@@ -763,38 +726,31 @@ Use **exactly** this structure (identical to discuss-phase output):
 ## Implementation Decisions
 
 ### {Area 1 Name}
-
 - {Accepted/chosen answer for Q1}
 - {Accepted/chosen answer for Q2}
 - {Accepted/chosen answer for Q3}
 - {Accepted/chosen answer for Q4}
 
 ### {Area 2 Name}
-
 - {Accepted/chosen answer for Q1}
 - {Accepted/chosen answer for Q2}
-  ...
+...
 
 ### Claude's Discretion
-
 {Any "You decide" answers collected — note Claude has flexibility here}
 
 </decisions>
 
 <code_context>
-
 ## Existing Code Insights
 
 ### Reusable Assets
-
 - {From codebase scout — components, hooks, utilities}
 
 ### Established Patterns
-
 - {From codebase scout — state management, styling, data fetching}
 
 ### Integration Points
-
 - {From codebase scout — where new code connects}
 
 </code_context>
@@ -852,7 +808,7 @@ Decisions captured: {count} across {area_count} areas
  Resume with: /gsd-autonomous --from ${next_incomplete_phase}
 ```
 
-进入 `completion_gate`，经 AskUserQuestion 或 ask_user 后再结束当前轮次。
+Proceed directly to lifecycle step (which handles partial completion — skips audit/complete/cleanup since not all phases are done). Exit cleanly.
 
 **Otherwise:** After each phase completes, re-read ROADMAP.md to catch phases inserted mid-execution (decimal phases like 5.1):
 
@@ -861,7 +817,6 @@ ROADMAP=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" roadmap analyze)
 ```
 
 Re-filter incomplete phases using the same logic as discover_phases:
-
 - Keep phases where `disk_status !== "complete"` OR `roadmap_complete === false`
 - Apply `--from N` filter if originally provided
 - Apply `--to N` filter if originally provided
@@ -878,10 +833,9 @@ Check for blockers in the Blockers/Concerns section. If blockers are found, go t
 If incomplete phases remain: proceed to next phase, loop back to execute_phase.
 
 **Interactive mode overlap:** When `INTERACTIVE` is set, the iterate step enables pipeline parallelism:
-
-1. Phase N 的 discuss 子代理完成后，分派 plan+execute 后台子代理
-2. 立即为 Phase N+1 分派 discuss 子代理，与 Phase N 构建并行
-3. 在启动 Phase N+1 的 plan 前，等待 Phase N execute 子代理完成并处理其后置路由（verification、gap closure 等）
+1. After discuss completes for Phase N, dispatch plan+execute as background agents
+2. Immediately start discuss for Phase N+1 (the next incomplete phase) while Phase N builds
+3. Before starting plan for Phase N+1, wait for Phase N's execute agent to complete and handle its post-execution routing (verification, gap closure, etc.)
 
 This means the user is always answering discuss questions (lightweight, interactive) while the heavy work (planning, code generation) runs in the background. The main context only accumulates discuss conversations — plan and execute contexts are isolated in their agents.
 
@@ -907,7 +861,7 @@ If all phases complete, proceed to lifecycle step.
  after all phases complete to trigger audit/complete/cleanup.
 ```
 
-进入 `completion_gate`，经 AskUserQuestion 或 ask_user 后再退出。
+Exit cleanly.
 
 **Otherwise:** After all phases complete, run the milestone lifecycle sequence: audit → complete → cleanup.
 
@@ -925,14 +879,10 @@ Display lifecycle transition banner:
 **5a. Audit**
 
 ```
-Agent(
-  description="Audit milestone ${milestone_version}",
-  run_in_background=true,
-  prompt="Skill(skill=\"gsd-audit-milestone\")"
-)
+Skill(skill="gsd-audit-milestone")
 ```
 
-After audit agent returns, detect the result:
+After audit completes, detect the result:
 
 ```bash
 AUDIT_FILE=".planning/v${milestone_version}-MILESTONE-AUDIT.md"
@@ -946,23 +896,20 @@ Go to handle_blocker: "Audit did not produce results — audit file missing or m
 **If `passed`:**
 
 Display:
-
 ```
-Audit ✅ passed — ready for complete milestone
+Audit ✅ passed — proceeding to complete milestone
 ```
 
-进入 `completion_gate`，由 AskUserQuestion 或 ask_user 确认后再进入 5b。
+Proceed to 5b (no user pause — per CTRL-01).
 
 **If `gaps_found`:**
 
 Read the gaps summary from the audit file. Display:
-
 ```
 ⚠ Audit: Gaps Found
 ```
 
 Ask user via AskUserQuestion:
-
 - **question:** "Milestone audit found gaps. How to proceed?"
 - **options:** "Continue anyway — accept gaps" / "Stop — fix gaps manually"
 
@@ -973,13 +920,11 @@ On **"Stop"**: Go to handle_blocker with "User stopped — audit gaps remain. Ru
 **If `tech_debt`:**
 
 Read the tech debt summary from the audit file. Display:
-
 ```
 ⚠ Audit: Tech Debt Identified
 ```
 
 Show the summary, then ask user via AskUserQuestion:
-
 - **question:** "Milestone audit found tech debt. How to proceed?"
 - **options:** "Continue with tech debt" / "Stop — address debt first"
 
@@ -990,11 +935,7 @@ On **"Stop"**: Go to handle_blocker with "User stopped — tech debt to address.
 **5b. Complete Milestone**
 
 ```
-Agent(
-  description="Complete milestone ${milestone_version}",
-  run_in_background=true,
-  prompt="Skill(skill=\"gsd-complete-milestone\", args=\"${milestone_version}\")"
-)
+Skill(skill="gsd-complete-milestone", args="${milestone_version}")
 ```
 
 After complete-milestone returns, verify it produced output:
@@ -1005,19 +946,13 @@ ls .planning/milestones/v${milestone_version}-ROADMAP.md 2>/dev/null || true
 
 If the archive file does not exist, go to handle_blocker: "Complete milestone did not produce expected archive files."
 
-返回后进入 `completion_gate`，确认后再进入 5c。
-
 **5c. Cleanup**
 
 ```
-Agent(
-  description="Cleanup milestone ${milestone_version}",
-  run_in_background=true,
-  prompt="Skill(skill=\"gsd-cleanup\")"
-)
+Skill(skill="gsd-cleanup")
 ```
 
-Cleanup 返回后再次进入 `completion_gate`。
+Cleanup shows its own dry-run and asks user for approval internally — this is an acceptable pause per CTRL-01 since it's an explicit decision about file deletion.
 
 **5d. Final Completion**
 
@@ -1031,9 +966,9 @@ Display final completion banner:
  Milestone: {milestone_version} — {milestone_name}
  Status: Complete ✅
  Lifecycle: audit ✅ → complete ✅ → cleanup ✅
-```
 
-最终必须进入 `completion_gate`，经 AskUserQuestion 或 ask_user 确认后才允许结束 autonomous。
+ Ship it! 🚀
+```
 
 </step>
 
@@ -1041,34 +976,20 @@ Display final completion banner:
 
 ## 6. Handle Blocker
 
-当任一步骤出现失败、超时、部分完成或阻塞时，必须进入 AskUserQuestion 决策分支。
+When any phase operation fails or a blocker is detected, present 3 options via AskUserQuestion:
 
-**Prompt:** "Phase {N} ({Name}) encountered {result_type}: {description}"
+**Prompt:** "Phase {N} ({Name}) encountered an issue: {description}"
 
 **Options:**
+1. **"Fix and retry"** — Re-run the failed step (discuss, plan, or execute) for this phase
+2. **"Skip this phase"** — Mark phase as skipped, continue to the next incomplete phase
+3. **"Stop autonomous mode"** — Display summary of progress so far and exit cleanly
 
-1. **"回收并二次分派"** — 回收中间状态后重新分派同一步骤子代理
-2. **"直接重试"** — 立即重派失败步骤
-3. **"跳过当前阶段"** — 记录跳过并进入下一阶段
-4. **"停止 autonomous"** — 输出进度摘要并结束
+**On "Fix and retry":** Loop back to the failed step within execute_phase. If the same step fails again after retry, re-present these options.
 
-**On "回收并二次分派":**
+**On "Skip this phase":** Log `Phase {N} ⏭ {Name} — Skipped by user` and proceed to iterate.
 
-- 回收 `STATE.md` 中当前阶段未完成项并标记来源
-- 重新分派失败步骤子代理
-- 子代理返回后必须进入 `completion_gate`
-
-**On "直接重试":**
-
-- 重新分派失败步骤子代理
-- 若再次失败，重新进入本决策分支
-
-**On "跳过当前阶段":**
-
-- Log `Phase {N} ⏭ {Name} — Skipped by user`
-- 进入 `completion_gate` 后再进入 iterate
-
-**On "停止 autonomous":** Display progress summary:
+**On "Stop autonomous mode":** Display progress summary:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1082,36 +1003,13 @@ Display final completion banner:
  Resume with: /gsd-autonomous ${ONLY_PHASE ? "--only " + ONLY_PHASE : "--from " + next_phase}${TO_PHASE ? " --to " + TO_PHASE : ""}
 ```
 
-结束前必须进入 `completion_gate`。
-
-</step>
-
-<step name="completion_gate">
-
-## 7. Completion Gate
-
-任一关键结果返回时，主 agent 必须先提问，不得直接结束。
-
-统一调用 AskUserQuestion 或 ask_user：
-
-- **question:** "关键结果已返回：{gate_reason}。请选择后续动作。"
-- **options:** "继续主流程" / "查看详情后继续" / "停止并退出"
-- **runtime_fallback:** Copilot 使用 `vscode_askquestions` 等价实现 AskUserQuestion。
-
-规则：
-
-1. 未完成提问前，不得执行 exit cleanly。
-2. 选择继续后，按调用方指定的 next_step 跳转。
-3. 选择停止后，先输出当前摘要，再结束。
-
 </step>
 
 </process>
 
 <success_criteria>
-
-- [ ] 所有未完成阶段均按顺序由子代理执行（discuss 子代理 → ui-phase 子代理 → plan 子代理 → execute 子代理 → ui-review 子代理）
-- [ ] discuss 决策由 discuss 子代理采集，主 agent 仅负责调度与 completion_gate 闸门
+- [ ] All incomplete phases executed in order (smart discuss → ui-phase → plan → execute → ui-review each)
+- [ ] Smart discuss proposes grey area answers in tables, user accepts or overrides per area
 - [ ] Progress banners displayed between phases
 - [ ] Execute-phase invoked with --no-transition (autonomous manages transitions)
 - [ ] Post-execution verification reads VERIFICATION.md and routes on status
@@ -1150,10 +1048,10 @@ Display final completion banner:
 - [ ] `--to N` compatible with `--from N` (run phases from M to N)
 - [ ] `--to N` handle_blocker resume message preserves --to flag
 - [ ] `--to N` skips lifecycle when not all milestone phases complete
-- [ ] `--interactive` 通过 discuss 子代理执行（提问与等待均在子代理内完成）
+- [ ] `--interactive` runs discuss inline via gsd:discuss-phase (asks questions, waits for user)
 - [ ] `--interactive` dispatches plan and execute as background agents (context isolation)
 - [ ] `--interactive` enables pipeline parallelism: discuss Phase N+1 while Phase N builds
 - [ ] `--interactive` main context only accumulates discuss conversations (lean)
 - [ ] `--interactive` waits for background agents before post-execution routing
 - [ ] `--interactive` compatible with `--only`, `--from`, and `--to` flags
-      </success_criteria>
+</success_criteria>

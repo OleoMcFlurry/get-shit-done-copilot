@@ -1,6 +1,6 @@
 <purpose>
 
-里程碑单终端调度中枢。主 agent 仅负责看板展示、动作选择、子代理分派与结果汇总，不直接执行 discuss、plan、execute、verify、complete。每轮关键结果返回后必须进入 completion_gate，调用 AskUserQuestion 或 ask_user 决策后才可继续或结束。
+Interactive command center for managing a milestone from a single terminal. Shows a dashboard of all phases with visual status, dispatches discuss inline and plan/execute as background agents, and loops back to the dashboard after each action. Enables parallel phase work from one terminal.
 
 </purpose>
 
@@ -26,7 +26,6 @@ if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 Parse JSON for: `milestone_version`, `milestone_name`, `phase_count`, `completed_count`, `in_progress_count`, `phases`, `recommended_actions`, `all_complete`, `waiting_signal`, `manager_flags`.
 
 `manager_flags` contains per-step passthrough flags from config:
-
 - `manager_flags.discuss` — appended to `/gsd-discuss-phase` args (e.g. `"--auto --analyze"`)
 - `manager_flags.plan` — appended to plan agent init command
 - `manager_flags.execute` — appended to execute agent init command
@@ -45,18 +44,12 @@ Display startup banner:
  {milestone_version} — {milestone_name}
  {phase_count} phases · {completed_count} complete
 
- ✓ Discuss/Plan/Execute → delegated agents
+ ✓ Discuss → inline    ◆ Plan/Execute → background
  Dashboard auto-refreshes when background work is active.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 Proceed to dashboard step.
-
-主 agent 调度约束：
-
-1. 主 agent 只调度，不直接执行实现动作。
-2. discuss、plan、execute、verify、complete 一律委派子代理。
-3. 任一关键结果返回后必须先进入 `completion_gate`。
 
 </step>
 
@@ -125,55 +118,36 @@ All {phase_count} phases done. Ready for final steps:
 ```
 
 Ask user via AskUserQuestion:
-
 - **question:** "All phases complete. What next?"
 - **options:** "Verify work" / "Complete milestone" / "Exit manager"
 
-处理分支：
-
-- "Verify work"：仅分派子代理执行。
-  ```
-  Task(
-    description="里程碑验收",
-    run_in_background=true,
-    prompt="执行 gsd-verify-work：Skill(skill=\"gsd-verify-work\")"
-  )
-  ```
-  子代理返回后进入 `completion_gate`，再回到 dashboard。
-- "Complete milestone"：仅分派子代理执行。
-  ```
-  Task(
-    description="完成里程碑",
-    run_in_background=true,
-    prompt="执行 gsd-complete-milestone：Skill(skill=\"gsd-complete-milestone\")"
-  )
-  ```
-  子代理返回后进入 `completion_gate`，再决定是否退出。
-- "Exit manager"：进入 `completion_gate` 后再进入 exit step。
+Handle responses:
+- "Verify work": `Skill(skill="gsd-verify-work")`  then loop to dashboard.
+- "Complete milestone": `Skill(skill="gsd-complete-milestone")` then exit.
+- "Exit manager": Go to exit step.
 
 **If NOT all_complete**, build compound options from `recommended_actions`:
 
-**组合动作逻辑：**将后台动作（plan/execute）与 discuss 子代理动作统一组合，所有动作均通过子代理执行，主 agent 仅负责调度。
+**Compound option logic:** Group background actions (plan/execute) together, and pair them with the single inline action (discuss) when one exists. The goal is to present the fewest options possible — one option can dispatch multiple background agents plus one inline action.
 
 **Building options:**
 
 1. Collect all background actions (execute and plan recommendations) — there can be multiple of each.
-2. Collect discuss action (if any) — it must also run via a delegated sub-agent.
+2. Collect the inline action (discuss recommendation, if any — there will be at most one since discuss is sequential).
 3. Build compound options:
 
-   **If there are ANY recommended actions (background, discuss, or both):**
+   **If there are ANY recommended actions (background, inline, or both):**
    Create ONE primary "Continue" option that dispatches ALL of them together:
-
    - Label: `"Continue"` — always this exact word
    - Below the label, list every action that will happen. Enumerate ALL recommended actions — do not cap or truncate:
      ```
      Continue:
        → Execute Phase 32 (background)
        → Plan Phase 34 (background)
-       → Discuss Phase 35 (agent)
+       → Discuss Phase 35 (inline)
      ```
-   - This dispatches all actions via sub-agents.
-   - If discuss is included, wait for discuss sub-agent result, then refresh dashboard.
+   - This dispatches all background agents first, then runs the inline discuss (if any).
+   - If there is no inline discuss, the dashboard refreshes after spawning background agents.
 
    **Important:** The Continue option must include EVERY action from `recommended_actions` — not just 2. If there are 3 actions, list 3. If there are 5, list 5.
 
@@ -191,13 +165,12 @@ Display recommendations compactly:
 Continue:
   → Execute Phase 32 (background)
   → Plan Phase 34 (background)
-  → Discuss Phase 35 (agent)
+  → Discuss Phase 35 (inline)
 ```
 
 **Auto-refresh:** If background agents are running (`is_active` is true for any phase), set a 60-second auto-refresh cycle. After presenting the action menu, if no user input is received within 60 seconds, automatically refresh the dashboard. This interval is configurable via `manager_refresh_interval` in GSD config (default: 60 seconds, set to 0 to disable).
 
 Present via AskUserQuestion:
-
 - **question:** "What would you like to do?"
 - **options:** (compound options as built above + refresh + exit, AskUserQuestion auto-adds "Other")
 
@@ -219,70 +192,92 @@ Loop back to dashboard step.
 
 Go to exit step.
 
-### Compound Action
+### Compound Action (background + inline)
 
-当选择组合动作时：
+When the user selects a compound option:
 
-1. 先并行分派全部后台动作。
-2. discuss 也必须通过子代理分派，不允许主 agent 直执。
+1. **Spawn all background agents first** (plan/execute) — dispatch them in parallel using the Plan Phase N / Execute Phase N handlers below.
+2. **Then run the inline discuss:**
+
+```
+Skill(skill="gsd-discuss-phase", args="{PHASE_NUM} {manager_flags.discuss}")
+```
+
+After discuss completes, loop back to dashboard step (background agents continue running).
+
+### Discuss Phase N
+
+Discussion is interactive — needs user input. Run inline with any configured flags:
+
+```
+Skill(skill="gsd-discuss-phase", args="{PHASE_NUM} {manager_flags.discuss}")
+```
+
+After discuss completes, loop back to dashboard step.
+
+### Plan Phase N
+
+Planning runs autonomously. Spawn a background agent that delegates to the Skill pipeline with any configured flags:
 
 ```
 Task(
-  description="Discuss phase {PHASE_NUM}: {phase_name}",
+  description="Plan phase {N}: {phase_name}",
   run_in_background=true,
-  prompt="Skill(skill=\"gsd-discuss-phase\", args=\"{PHASE_NUM} {manager_flags.discuss}\")"
+  prompt="You are running the GSD plan-phase workflow for phase {N} of the project.
+
+Working directory: {cwd}
+Phase: {N} — {phase_name}
+Goal: {goal}
+Manager flags: {manager_flags.plan}
+
+Run the plan-phase Skill with any configured manager flags:
+Skill(skill=\"gsd-plan-phase\", args=\"{N} --auto {manager_flags.plan}\")
+
+This delegates to the full plan-phase pipeline including local patches, research, plan-checker, and all quality gates.
+
+Important: You are running in the background. Do NOT use AskUserQuestion — make autonomous decisions based on project context. If you hit a blocker, write it to STATE.md as a blocker and stop. Do NOT silently work around permission or file access errors — let them fail so the manager can surface them with resolution hints. Do NOT use --no-verify on git commits."
 )
 ```
 
-所有子代理返回后统一进入 `completion_gate`，再回 dashboard。
+Display:
 
-### 计划阶段 N
+```
+◆ Spawning planner for Phase {N}: {phase_name}...
+```
 
-计划阶段仅允许子代理执行：
+Loop back to dashboard step.
+
+### Execute Phase N
+
+Execution runs autonomously. Spawn a background agent that delegates to the Skill pipeline with any configured flags:
 
 ```
 Task(
-  description="计划阶段 {N}: {phase_name}",
+  description="Execute phase {N}: {phase_name}",
   run_in_background=true,
-  prompt="执行第 {N} 阶段计划流程。
+  prompt="You are running the GSD execute-phase workflow for phase {N} of the project.
 
-工作目录：{cwd}
-阶段：{N} — {phase_name}
-目标：{goal}
-管理参数：{manager_flags.plan}
+Working directory: {cwd}
+Phase: {N} — {phase_name}
+Goal: {goal}
+Manager flags: {manager_flags.execute}
 
-执行：Skill(skill=\"gsd-plan-phase\", args=\"{N} --auto {manager_flags.plan}\")
+Run the execute-phase Skill with any configured manager flags:
+Skill(skill=\"gsd-execute-phase\", args=\"{N} {manager_flags.execute}\")
 
-若出现阻塞、超时、部分完成，写入 STATE.md 后停止。"
+This delegates to the full execute-phase pipeline including local patches, branching, wave-based execution, verification, and all quality gates.
+
+Important: You are running in the background. Do NOT use AskUserQuestion — make autonomous decisions. Do NOT use --no-verify on git commits — let pre-commit hooks run normally. If you hit a permission error, file lock, or any access issue, do NOT work around it — let it fail and write the error to STATE.md as a blocker so the manager can surface it with resolution guidance."
 )
 ```
 
-显示分派提示后，不直接结束，等待结果进入 `completion_gate`。
-
-### 执行阶段 N
-
-执行阶段仅允许子代理执行：
+Display:
 
 ```
-
-Task(
-description="执行阶段 {N}: {phase_name}",
-run_in_background=true,
-prompt="执行第 {N} 阶段实施流程。
-
-工作目录：{cwd}
-阶段：{N} — {phase_name}
-目标：{goal}
-管理参数：{manager_flags.execute}
-
-执行：Skill(skill=\"gsd-execute-phase\", args=\"{N} {manager_flags.execute}\")
-
-若出现阻塞、超时、部分完成，写入 STATE.md 后停止。"
-)
-
+◆ Spawning executor for Phase {N}: {phase_name}...
 ```
 
-显示分派提示后，不直接结束，等待结果进入 `completion_gate`。
+Loop back to dashboard step.
 
 </step>
 
@@ -290,25 +285,39 @@ prompt="执行第 {N} 阶段实施流程。
 
 ## 5. Background Agent Completion
 
-当后台子代理返回结果时：
+When notified that a background agent completed:
 
-1. 读取子代理结果。
-2. 输出简要通知。
-3. 必须进入 `completion_gate`。
+1. Read the result message from the agent.
+2. Display a brief notification:
 
-若结果为失败、超时、部分完成或阻塞，统一进入 AskUserQuestion 决策分支：
+```
+✓ {description}
+  {brief summary from agent result}
+```
 
-- **question:** "Phase {N} 返回 {result_type}：{error}，如何处理？"
-- **options:** "回收并二次分派" / "直接重试" / "跳过并继续" / "查看详情"
+3. Loop back to dashboard step.
 
-处理规则：
+**If the agent reported an error or blocker:**
 
-1. 回收并二次分派：先回收 `STATE.md` 当前阶段未完成项，再重派同动作子代理。
-2. 直接重试：直接重派同动作子代理。
-3. 跳过并继续：保留当前阶段状态并回 dashboard。
-4. 查看详情：读取 `STATE.md` 阻塞段并重新展示决策。
+Classify the error:
 
-任何路径都不得绕过 `completion_gate`。
+**Permission / tool access error** (e.g. tool not allowed, permission denied, sandbox restriction):
+- Parse the error to identify which tool or command was blocked.
+- Display the error clearly, then offer to fix it:
+  - **question:** "Phase {N} failed — permission denied for `{tool_or_command}`. Want me to add it to settings.local.json so it's allowed?"
+  - **options:** "Add permission and retry" / "Run this phase inline instead" / "Skip and continue"
+  - "Add permission and retry": Use `Skill(skill="update-config")` to add the permission to `settings.local.json`, then re-spawn the background agent. Loop to dashboard.
+  - "Run this phase inline instead": Dispatch the same action inline via the appropriate Skill — use `Skill(skill="gsd-plan-phase", args="{N}")` if the failed action was planning, or `Skill(skill="gsd-execute-phase", args="{N}")` if the failed action was execution. Loop to dashboard after.
+  - "Skip and continue": Loop to dashboard (phase stays in current state).
+
+**Other errors** (git lock, file conflict, logic error, etc.):
+- Display the error, then offer options via AskUserQuestion:
+  - **question:** "Background agent for Phase {N} encountered an issue: {error}. What next?"
+  - **options:** "Retry" / "Run inline instead" / "Skip and continue" / "View details"
+  - "Retry": Re-spawn the same background agent. Loop to dashboard.
+  - "Run inline instead": Dispatch the action inline via the appropriate Skill — use `Skill(skill="gsd-plan-phase", args="{N}")` if the failed action was planning, or `Skill(skill="gsd-execute-phase", args="{N}")` if the failed action was execution. Loop to dashboard after.
+  - "Skip and continue": Loop to dashboard (phase stays in current state).
+  - "View details": Read STATE.md blockers section, display, then re-present options.
 
 </step>
 
@@ -316,9 +325,7 @@ prompt="执行第 {N} 阶段实施流程。
 
 ## 6. Exit
 
-退出前必须进入 `completion_gate` 并完成提问确认。
-
-显示最终状态：
+Display final status with progress bar:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -332,39 +339,18 @@ prompt="执行第 {N} 阶段实施流程。
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-若仍有后台子代理运行，保留提示信息并允许后续回读。
-
-</step>
-
-<step name="completion_gate">
-
-## 7. Completion Gate
-
-任一关键结果返回时，主 agent 必须先提问，不得直接结束流程。
-
-统一调用 AskUserQuestion 或 ask_user：
-
-- **question:** "关键结果已返回：{gate_reason}。请选择后续动作。"
-- **options:** "继续主流程" / "查看详情后继续" / "停止并退出"
-- **runtime_fallback:** Copilot 使用 `vscode_askquestions` 等价实现 AskUserQuestion。
-
-规则：
-
-1. 未 ask 不得结束。
-2. 选择继续后跳转到调用方指定步骤。
-3. 选择停止后先输出摘要再退出。
+**Note:** Any background agents still running will continue to completion. Their results will be visible on next `/gsd-manager` or `/gsd-progress` invocation.
 
 </step>
 
 </process>
 
 <success_criteria>
-
 - [ ] Dashboard displays all phases with correct status indicators (D/P/E/V columns)
 - [ ] Progress bar shows accurate completion percentage
 - [ ] Dependency resolution: blocked phases show which deps are missing
 - [ ] Recommendations prioritize: execute > plan > discuss
-- [ ] Discuss phases run via delegated Task agents — interactive questions are handled by discuss sub-agents
+- [ ] Discuss phases run inline via Skill() — interactive questions work
 - [ ] Plan phases spawn background Task agents — return to dashboard immediately
 - [ ] Execute phases spawn background Task agents — return to dashboard immediately
 - [ ] Dashboard refreshes pick up changes from background agents via disk state
@@ -374,4 +360,4 @@ prompt="执行第 {N} 阶段实施流程。
 - [ ] Exit shows final status with resume instructions
 - [ ] "Other" free-text input parsed for phase number and action
 - [ ] Manager loop continues until user exits or milestone completes
-      </success_criteria>
+</success_criteria>
