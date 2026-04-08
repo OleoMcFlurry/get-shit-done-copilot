@@ -50,7 +50,8 @@ AskUserQuestion([
       { label: "Quality", description: "Opus everywhere except verification (highest cost)" },
       { label: "Balanced (Recommended)", description: "Opus for planning, Sonnet for research/execution/verification" },
       { label: "Budget", description: "Sonnet for writing, Haiku for research/verification (lowest cost)" },
-      { label: "Inherit", description: "Use current session model for all agents (best for OpenRouter, local models, or runtime model switching)" }
+      { label: "Inherit", description: "Use current session model for all agents (best for OpenRouter, local models, or runtime model switching)" },
+      { label: "Copilot", description: "Optimized for GitHub Copilot billing: Opus/Sonnet for planning sub-agents, Haiku for research — maximizes quality while keeping main-agent on default (0x) rate" }
     ]
   },
   {
@@ -163,6 +164,15 @@ AskUserQuestion([
       { label: "Yes (Recommended)", description: "Each parallel executor runs in its own worktree branch — no conflicts between agents." },
       { label: "No", description: "Disable worktree isolation. Use on platforms where EnterWorktree is broken (e.g. Windows with feature branches). Agents run sequentially on the main working tree." }
     ]
+  },
+  {
+    question: "Enable Completion Gate? (ask for next step after each command completes)",
+    header: "Completion Gate",
+    multiSelect: false,
+    options: [
+      { label: "No (Recommended)", description: "Workflows end normally after completion. Standard behavior." },
+      { label: "Yes", description: "After each /gsd-* command completes, ask what to do next — keeps the session alive. Ideal for GitHub Copilot billing where only the main agent turn is charged." }
+    ]
   }
 ])
 ```
@@ -174,7 +184,7 @@ Merge new settings into existing config.json:
 ```json
 {
   ...existing_config,
-  "model_profile": "quality" | "balanced" | "budget" | "adaptive" | "inherit",
+  "model_profile": "quality" | "balanced" | "budget" | "adaptive" | "inherit" | "copilot",
   "workflow": {
     "research": true/false,
     "plan_check": true/false,
@@ -187,7 +197,8 @@ Merge new settings into existing config.json:
     "research_before_questions": true/false,
     "discuss_mode": "discuss" | "assumptions",
     "skip_discuss": true/false,
-    "use_worktrees": true/false
+    "use_worktrees": true/false,
+    "completion_gate": true/false
   },
   "git": {
     "branching_strategy": "none" | "phase" | "milestone",
@@ -271,6 +282,7 @@ Display:
 | Git Branching        | {None/Per Phase/Per Milestone} |
 | Skip Discuss         | {On/Off} |
 | Context Warnings     | {On/Off} |
+| Completion Gate      | {On/Off} |
 | Saved as Defaults    | {Yes/No} |
 
 These settings apply to future /gsd-plan-phase and /gsd-execute-phase runs.
@@ -287,7 +299,7 @@ Quick commands:
 
 <success_criteria>
 - [ ] Current config read
-- [ ] User presented with 10 settings (profile + 8 workflow toggles + git branching)
+- [ ] User presented with 11 settings (profile + 9 workflow toggles + git branching)
 - [ ] Config updated with model_profile, workflow, and git sections
 - [ ] User offered to save as global defaults (~/.gsd/defaults.json)
 - [ ] Changes confirmed to user
