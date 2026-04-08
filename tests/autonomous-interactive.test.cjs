@@ -25,10 +25,14 @@ describe('autonomous --interactive flag (#1413)', () => {
 
   test('command definition describes interactive mode behavior', () => {
     const content = fs.readFileSync(commandPath, 'utf8');
-    assert.ok(content.includes('discuss') && content.includes('inline'),
-      'command should describe discuss running inline');
-    assert.ok(content.includes('background'),
-      'command should mention background agents for plan+execute');
+    assert.ok(
+      content.includes('discuss') && content.includes('子代理'),
+      'command should describe discuss handled by delegated subagent'
+    );
+    assert.ok(
+      content.includes('background') || content.includes('后台子代理'),
+      'command should mention background agents for plan+execute'
+    );
   });
 
   test('workflow parses --interactive flag', () => {
@@ -76,8 +80,10 @@ describe('autonomous --interactive flag (#1413)', () => {
     const criteria = criteriaMatch ? criteriaMatch[1] : '';
     assert.ok(criteria.includes('--interactive'),
       'success criteria should include --interactive requirements');
-    assert.ok(criteria.includes('discuss inline'),
-      'success criteria should mention discuss inline');
+    assert.ok(
+      criteria.includes('discuss 子代理执行') || criteria.includes('提问与等待均在子代理内完成'),
+      'success criteria should mention discuss delegated to subagent'
+    );
     assert.ok(criteria.includes('background agents'),
       'success criteria should mention background agents');
   });
