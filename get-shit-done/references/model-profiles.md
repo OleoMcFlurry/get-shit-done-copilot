@@ -143,3 +143,35 @@ Claude Code's `"opus"` alias maps to a specific model version. Organizations may
 
 **Why `inherit` profile?**
 Some runtimes (including OpenCode) let users switch models at runtime (`/model`). The `inherit` profile keeps all GSD subagents aligned to that live selection.
+
+## copilot Profile (Copilot-Optimized)
+
+Optimized for GitHub Copilot's billing model where sub-agents don't consume separate premium requests. Uses full model IDs (not short aliases) to enable cross-provider assignment.
+
+| Agent | Model |
+|-------|-------|
+| gsd-planner | `claude-opus-4.6` |
+| gsd-roadmapper | `claude-opus-4.6` |
+| gsd-executor | `gpt-5.3-codex` |
+| gsd-phase-researcher | `gpt-5.4-mini` |
+| gsd-project-researcher | `gpt-5.4-mini` |
+| gsd-research-synthesizer | `gpt-5.4-mini` |
+| gsd-debugger | `claude-opus-4.6` |
+| gsd-codebase-mapper | `gpt-5.4-mini` |
+| gsd-verifier | `claude-sonnet-4.6` |
+| gsd-plan-checker | `claude-sonnet-4.6` |
+| gsd-integration-checker | `claude-sonnet-4.6` |
+| gsd-nyquist-auditor | `claude-sonnet-4.6` |
+| gsd-ui-researcher | `claude-opus-4.6` |
+| gsd-ui-checker | `claude-sonnet-4.6` |
+| gsd-ui-auditor | `claude-sonnet-4.6` |
+| gsd-doc-writer | `gpt-5.4-mini` |
+| gsd-doc-verifier | `gpt-5.4-mini` |
+
+**Rationale:**
+- Planning/architecture/debug agents (`gsd-planner`, `gsd-roadmapper`, `gsd-debugger`, `gsd-ui-researcher`): `claude-opus-4.6` — highest reasoning for decisions
+- TDD execution (`gsd-executor`): `gpt-5.3-codex` — specialized code generation
+- Verification/testing agents: `claude-sonnet-4.6` — sufficient reasoning without full opus cost
+- Research/docs/lightweight agents: `gpt-5.4-mini` — high-volume tasks where speed > depth
+
+**Activation:** `/gsd-set-profile copilot` or set `"model_profile": "copilot"` in `.planning/config.json`.

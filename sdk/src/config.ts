@@ -33,6 +33,8 @@ export interface WorkflowConfig {
   skip_discuss: boolean;
   /** Maximum self-discuss passes in auto/headless mode before forcing proceed. Default: 3. */
   max_discuss_passes: number;
+  /** Keep the main agent session alive after command completion. Default: false. */
+  completion_gate?: boolean;
 }
 
 export interface HooksConfig {
