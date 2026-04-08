@@ -41,7 +41,8 @@ describe('MODEL_PROFILES', () => {
   });
 
   test('all profile values are valid model aliases', () => {
-    const validModels = ['opus', 'sonnet', 'haiku'];
+    const validModels = ['opus', 'sonnet', 'haiku',
+      'claude-opus-4.6', 'claude-sonnet-4.6', 'gpt-5.3-codex', 'gpt-5.4-mini'];
     for (const [agent, profiles] of Object.entries(MODEL_PROFILES)) {
       for (const [profile, model] of Object.entries(profiles)) {
         assert.ok(
@@ -66,7 +67,7 @@ describe('MODEL_PROFILES', () => {
 
 describe('VALID_PROFILES', () => {
   test('contains quality, balanced, and budget', () => {
-    assert.deepStrictEqual(VALID_PROFILES.sort(), ['adaptive', 'balanced', 'budget', 'quality']);
+    assert.deepStrictEqual(VALID_PROFILES.sort(), ['adaptive', 'balanced', 'budget', 'copilot', 'quality']);
   });
 
   test('is derived from MODEL_PROFILES keys', () => {

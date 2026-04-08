@@ -7,6 +7,7 @@ allowed-tools:
   - Grep
   - Glob
   - SlashCommand
+  - AskUserQuestion
 ---
 <objective>
 Detect the current project state and automatically invoke the next logical GSD workflow step.

@@ -143,6 +143,12 @@ Then immediately invoke the determined command via SlashCommand.
 Do not ask for confirmation — the whole point of `/gsd-next` is zero-friction advancement.
 </step>
 
+<step name="completion_gate" required="true">
+After the invoked command returns, call AskUserQuestion to offer next steps.
+
+Completion is valid only after ask gate response is processed.
+</step>
+
 </process>
 
 <success_criteria>

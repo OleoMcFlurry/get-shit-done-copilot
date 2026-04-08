@@ -60,4 +60,6 @@ Context files are resolved inside the workflow via `gsd-tools init execute-phase
 <process>
 Execute the execute-phase workflow from @~/.claude/get-shit-done/workflows/execute-phase.md end-to-end.
 Preserve all workflow gates (wave execution, checkpoint handling, verification, state updates, routing).
+
+**调度约束：** 主 agent 仅负责编排波次与门控，不直接执行计划任务。所有计划执行必须由子代理完成。执行阶段性结果后必须进入 completion_gate 提问闸门。
 </process>

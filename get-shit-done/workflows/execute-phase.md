@@ -7,6 +7,8 @@ Orchestrator coordinates, not executes. Each subagent loads the full execute-pla
 </core_principle>
 
 <runtime_compatibility>
+**强制规则：主 agent 仅负责编排与门控**，必须由 `gsd-executor` 子代理执行计划，不得降级为主流程执行。若运行时不支持 Task 或等效子代理能力，必须立即调用 AskUserQuestion 询问是否改为顺序派发 gsd-executor 子代理。
+
 **Subagent spawning is runtime-specific:**
 - **Claude Code:** Uses `Task(subagent_type="gsd-executor", ...)` — blocks until complete, returns result
 - **Copilot:** Subagent spawning does not reliably return completion signals. **Default to
@@ -16,6 +18,8 @@ Orchestrator coordinates, not executes. Each subagent loads the full execute-pla
   to detect completion.
 - **Other runtimes:** If `Task`/`task` tool is unavailable, use sequential inline execution as the
   fallback. Check for tool availability at runtime rather than assuming based on runtime name.
+
+**Copilot 顺序派发策略：** 当并行子代理不可用时，改为顺序派发 gsd-executor 子代理执行每个计划，通过 spot-check 验证完成状态。
 
 **Fallback rule:** If a spawned agent completes its work (commits visible, SUMMARY.md exists) but
 the orchestrator never receives the completion signal, treat it as successful based on spot-checks

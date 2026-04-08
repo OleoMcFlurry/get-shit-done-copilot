@@ -37,4 +37,6 @@ Project context, phase list, dependencies, and recommendations are resolved insi
 <process>
 Execute the manager workflow from @~/.claude/get-shit-done/workflows/manager.md end-to-end.
 Maintain the dashboard refresh loop until the user exits or all phases complete.
+
+**调度约束：** 主 agent 仅负责仪表盘展示与动作分发，不直接执行 discuss、plan、execute 等操作。所有执行动作必须委派子代理完成。每个阶段性结果返回后必须进入 completion_gate 提问闸门。
 </process>

@@ -91,6 +91,12 @@ If the chosen command expects a phase number and one wasn't provided in the text
 After invoking the command, stop. The dispatched command handles everything from here.
 </step>
 
+<step name="completion_gate" required="true">
+After the dispatched command returns, call AskUserQuestion to offer the user next steps.
+
+Never exit immediately after dispatch without running this ask gate.
+</step>
+
 </process>
 
 <success_criteria>

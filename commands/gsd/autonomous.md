@@ -42,4 +42,6 @@ Project context, phase list, and state are resolved inside the workflow using in
 <process>
 Execute the autonomous workflow from @~/.claude/get-shit-done/workflows/autonomous.md end-to-end.
 Preserve all workflow gates (phase discovery, per-phase execution, blocker handling, progress display).
+
+**调度约束：** 主 agent 只负责阶段发现、子代理委派、结果聚合，不直接执行 discuss、plan、execute 等操作。所有执行动作必须委派子代理完成。每个阶段性结果返回后必须进入 completion_gate 提问闸门。
 </process>

@@ -32,6 +32,7 @@ describe('#1736: local Claude install populates .claude/commands/gsd/', () => {
   });
 
   afterEach(() => {
+    try { process.chdir(os.tmpdir()); } catch {}
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 

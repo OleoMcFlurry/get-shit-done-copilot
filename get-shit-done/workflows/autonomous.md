@@ -972,24 +972,39 @@ Display final completion banner:
 
 </step>
 
+<step name="completion_gate">
+
+## 5b. Completion Gate
+
+每个阶段性结果（discuss/plan/execute/verify）返回后，统一调用 AskUserQuestion 或 ask_user 展示摘要并提供选项：
+
+1. **"继续主流程"** — 继续执行下一个阶段或步骤
+2. **"查看详情后继续"** — 展示子代理返回的详细信息，然后继续
+3. **"停止并退出"** — 保存当前进度，干净退出
+
+</step>
+
 <step name="handle_blocker">
 
 ## 6. Handle Blocker
 
-When any phase operation fails or a blocker is detected, present 3 options via AskUserQuestion:
+当子代理返回失败、超时、部分完成等异常状态时，通过 AskUserQuestion 进入决策分支：
 
 **Prompt:** "Phase {N} ({Name}) encountered an issue: {description}"
 
 **Options:**
-1. **"Fix and retry"** — Re-run the failed step (discuss, plan, or execute) for this phase
-2. **"Skip this phase"** — Mark phase as skipped, continue to the next incomplete phase
-3. **"Stop autonomous mode"** — Display summary of progress so far and exit cleanly
+1. **"回收并二次分派"** — 收集子代理返回的错误信息，调整参数后重新派发子代理
+2. **"直接重试"** — Re-run the failed step (discuss, plan, or execute) for this phase
+3. **"跳过当前阶段"** — Mark phase as skipped, continue to the next incomplete phase
+4. **"停止 autonomous"** — Display summary of progress so far and exit cleanly
 
-**On "Fix and retry":** Loop back to the failed step within execute_phase. If the same step fails again after retry, re-present these options.
+**On "回收并二次分派":** Analyze the error, adjust context/parameters, re-dispatch to subagent. If still fails, re-present options.
 
-**On "Skip this phase":** Log `Phase {N} ⏭ {Name} — Skipped by user` and proceed to iterate.
+**On "直接重试":** Loop back to the failed step within execute_phase. If the same step fails again after retry, re-present these options.
 
-**On "Stop autonomous mode":** Display progress summary:
+**On "跳过当前阶段":** Log `Phase {N} ⏭ {Name} — Skipped by user` and proceed to iterate.
+
+**On "停止 autonomous":** Display progress summary:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1054,6 +1069,7 @@ When any phase operation fails or a blocker is detected, present 3 options via A
 - [ ] `--interactive` main context only accumulates discuss conversations (lean)
 - [ ] `--interactive` waits for background agents before post-execution routing
 - [ ] `--interactive` compatible with `--only`, `--from`, and `--to` flags
+- [ ] `--interactive` discuss 子代理执行，提问与等待均在子代理内完成
 </success_criteria>
 
 ## Completion Gate

@@ -12,6 +12,8 @@ Read all files referenced by the invoking prompt's execution_context before star
 
 <process>
 
+**调度约束：** discuss、plan、execute、verify、complete 一律委派子代理，主 agent 仅负责仪表盘渲染与动作路由。任一关键结果返回后必须先进入 `completion_gate`，统一调用 AskUserQuestion 或 ask_user 展示摘要并提供决策选项。当子代理返回失败、超时、部分完成等异常状态时，必须通过 AskUserQuestion 进入决策分支。
+
 <step name="initialize" priority="first">
 
 ## 1. Initialize

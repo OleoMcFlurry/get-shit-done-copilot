@@ -1231,7 +1231,7 @@ describe('E2E: Copilot full install verification', () => {
   test('global install command does not emit unreplaced .claude warning', () => {
     const globalHomeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gsd-e2e-global-'));
     try {
-      const env = { ...process.env, HOME: globalHomeDir };
+      const env = { ...process.env, HOME: globalHomeDir, USERPROFILE: globalHomeDir };
       delete env.GSD_TEST_MODE;
       const installResult = spawnSync(
         process.execPath,
