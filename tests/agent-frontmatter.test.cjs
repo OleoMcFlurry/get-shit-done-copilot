@@ -198,17 +198,21 @@ describe('SPAWN: spawn type consistency', () => {
     }
   });
 
-  test('execute-phase has Copilot sequential fallback in runtime_compatibility', () => {
+  test('execute-phase 在 runtime_compatibility 中声明 Copilot 顺序子代理回退策略', () => {
     const content = fs.readFileSync(
       path.join(WORKFLOWS_DIR, 'execute-phase.md'), 'utf-8'
     );
     assert.ok(
-      content.includes('sequential inline execution'),
-      'execute-phase must document sequential inline execution as Copilot fallback'
+      content.includes('顺序派发') && content.includes('gsd-executor'),
+      'execute-phase 必须声明 Copilot 场景下改为顺序派发 gsd-executor 子代理'
     );
     assert.ok(
       content.includes('spot-check'),
-      'execute-phase must have spot-check fallback for completion detection'
+      'execute-phase 必须保留 spot-check 回退判定机制'
+    );
+    assert.ok(
+      content.includes('不得切换为主流程 inline 执行') || content.includes('不得降级为主流程执行'),
+      'execute-phase 必须明确禁止主流程 inline 执行计划任务'
     );
   });
 });
