@@ -105,23 +105,31 @@
 ## P2 全量化阶段
 
 - 阶段目标：形成统一规范、回归机制与可持续维护体系。
-- 阶段状态：未开始
-- 阶段进度：0%
+- 阶段状态：完成
+- 阶段进度：100%
 
 ### P2 任务清单
 
-- [ ] 固化主 agent 白名单与黑名单规范
-- [ ] 完成跨运行时兼容策略
-- [ ] 增加行为审计与防漂移检查
-- [ ] 完成最小回归测试集合
-- [ ] 完成文档同步（架构、特性、配置）
-- [ ] 完成 P2 验收记录
+- [x] 固化主 agent 白名单与黑名单规范
+- [x] 完成跨运行时兼容策略
+- [x] 增加行为审计与防漂移检查
+- [x] 完成最小回归测试集合
+- [x] 完成文档同步（架构、特性、配置）
+- [x] 完成 P2 验收记录
 
 ### P2 完成定义
 
 1. 所有入口遵循主 agent 调度模型。
 2. 收尾 ask_user 机制全局一致。
 3. 验收与回归结果完整归档。
+
+### P2 验收记录
+
+1. 白名单与黑名单规范已固化到 `docs/ARCHITECTURE.md` 的 `Main Agent Dispatch Guardrails` 章节。
+2. 跨运行时兼容策略已对齐到 `docs/ARCHITECTURE.md` 与 `docs/CONFIGURATION.md`，明确 L1/L2 与 text-mode 回退。
+3. 特性文档已同步 `docs/FEATURES.md`，补充 autonomous 的 allowlist/denylist 与兼容分级要求。
+4. 阶段状态已更新为进行中，P2-1、P2-2、P2-5 已勾选完成，P2-6 先行完成部分验收记录。
+5. P2-3、P2-4 已由 qa-verifier 完成并提供证据：`tmp/p2/master-agent-dispatch-audit.json`、`tmp/p2/master-agent-min-regression.json`、`tmp/p2/master-agent-dispatch-audit-via-npm.json`、`tmp/p2/master-agent-min-regression-via-npm.json`；验证命令 `node --test "tests/master-agent-dispatch-audit.test.cjs"`、`node "scripts/master-agent-dispatch-audit.cjs" --json --report "tmp/p2/master-agent-dispatch-audit.json"`、`node "scripts/run-master-agent-regression.cjs" --json --report "tmp/p2/master-agent-min-regression.json"`、`npm run "audit:master-agent-dispatch" -- --json --report "tmp/p2/master-agent-dispatch-audit-via-npm.json"`、`npm run "test:master-agent-min" -- --json --report "tmp/p2/master-agent-min-regression-via-npm.json"` 均通过。
 
 ## 风险与缓解
 
@@ -142,20 +150,23 @@
 
 ## 变更日志
 
-| 时间             | 阶段       | 动作                                                     | 结果 | 证据                                                                                                                                                                         |
-| ---------------- | ---------- | -------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-04-07 14:26 | 计划初始化 | 创建真实计划文档                                         | 完成 | .plans/master-agent-dispatch-plan.md                                                                                                                                         |
-| 2026-04-07 14:37 | P0         | do/next 增加 completion_gate 与 ask 收尾断言             | 完成 | get-shit-done/workflows/do.md, get-shit-done/workflows/next.md                                                                                                               |
-| 2026-04-07 14:37 | P0         | next 命令补齐 AskUserQuestion 工具声明                   | 完成 | commands/gsd/next.md                                                                                                                                                         |
-| 2026-04-07 14:37 | P0         | 模板补充 do/next 收尾闸门规则                            | 完成 | get-shit-done/templates/copilot-instructions.md                                                                                                                              |
-| 2026-04-07 15:20 | P1         | autonomous/manager 切换为主 agent 纯调度与子代理执行模式 | 完成 | commands/gsd/autonomous.md, get-shit-done/workflows/autonomous.md, commands/gsd/manager.md, get-shit-done/workflows/manager.md                                               |
-| 2026-04-07 15:20 | P1         | 增加 completion_gate 与失败超时部分完成回收二次分派规则  | 完成 | get-shit-done/workflows/autonomous.md, get-shit-done/workflows/manager.md                                                                                                    |
-| 2026-04-07 15:20 | P1         | 同步 P1 状态进度任务勾选与验收记录                       | 完成 | .plans/master-agent-dispatch-plan.md                                                                                                                                         |
-| 2026-04-07 15:36 | P1         | 复核五文件差异正文并补齐验收证据路径                     | 完成 | git diff -- commands/gsd/autonomous.md get-shit-done/workflows/autonomous.md commands/gsd/manager.md get-shit-done/workflows/manager.md .plans/master-agent-dispatch-plan.md |
-| 2026-04-07 15:37 | P1         | 执行仓库测试验证                                         | 完成 | npm test                                                                                                                                                                     |
-| 2026-04-07 15:48 | P1         | 执行构建脚本可用性检查                                   | 完成 | `npm run build`（脚本缺失）与 `npm run`（脚本清单）                                                                                                                          |
-| 2026-04-07 15:50 | P1         | 执行代码块闭合核验                                       | 完成 | `node -e` 统计代码围栏（autonomous/manager 均为偶数）                                                                                                                        |
-| 2026-04-07 15:50 | P1         | 执行 IDE 诊断连接检查                                    | 完成 | `ide-get_diagnostics`（IDE connection not available）                                                                                                                        |
+| 时间             | 阶段       | 动作                                                     | 结果 | 证据                                                                                                                                                                               |
+| ---------------- | ---------- | -------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-04-07 14:26 | 计划初始化 | 创建真实计划文档                                         | 完成 | .plans/master-agent-dispatch-plan.md                                                                                                                                               |
+| 2026-04-07 14:37 | P0         | do/next 增加 completion_gate 与 ask 收尾断言             | 完成 | get-shit-done/workflows/do.md, get-shit-done/workflows/next.md                                                                                                                     |
+| 2026-04-07 14:37 | P0         | next 命令补齐 AskUserQuestion 工具声明                   | 完成 | commands/gsd/next.md                                                                                                                                                               |
+| 2026-04-07 14:37 | P0         | 模板补充 do/next 收尾闸门规则                            | 完成 | get-shit-done/templates/copilot-instructions.md                                                                                                                                    |
+| 2026-04-07 15:20 | P1         | autonomous/manager 切换为主 agent 纯调度与子代理执行模式 | 完成 | commands/gsd/autonomous.md, get-shit-done/workflows/autonomous.md, commands/gsd/manager.md, get-shit-done/workflows/manager.md                                                     |
+| 2026-04-07 15:20 | P1         | 增加 completion_gate 与失败超时部分完成回收二次分派规则  | 完成 | get-shit-done/workflows/autonomous.md, get-shit-done/workflows/manager.md                                                                                                          |
+| 2026-04-07 15:20 | P1         | 同步 P1 状态进度任务勾选与验收记录                       | 完成 | .plans/master-agent-dispatch-plan.md                                                                                                                                               |
+| 2026-04-07 15:36 | P1         | 复核五文件差异正文并补齐验收证据路径                     | 完成 | git diff -- commands/gsd/autonomous.md get-shit-done/workflows/autonomous.md commands/gsd/manager.md get-shit-done/workflows/manager.md .plans/master-agent-dispatch-plan.md       |
+| 2026-04-07 15:37 | P1         | 执行仓库测试验证                                         | 完成 | npm test                                                                                                                                                                           |
+| 2026-04-07 15:48 | P1         | 执行构建脚本可用性检查                                   | 完成 | `npm run build`（脚本缺失）与 `npm run`（脚本清单）                                                                                                                                |
+| 2026-04-07 15:50 | P1         | 执行代码块闭合核验                                       | 完成 | `node -e` 统计代码围栏（autonomous/manager 均为偶数）                                                                                                                              |
+| 2026-04-07 15:50 | P1         | 执行 IDE 诊断连接检查                                    | 完成 | `ide-get_diagnostics`（IDE connection not available）                                                                                                                              |
+| 2026-04-08 03:05 | P2         | 固化主 agent 白名单黑名单规范与跨运行时 L1/L2 兼容策略   | 完成 | docs/ARCHITECTURE.md, docs/FEATURES.md, docs/CONFIGURATION.md                                                                                                                      |
+| 2026-04-08 03:06 | P2         | 同步文档与计划状态，补充 P2 验收记录                     | 完成 | .plans/master-agent-dispatch-plan.md                                                                                                                                               |
+| 2026-04-08 03:10 | P2         | 回填 P2-3/P2-4 审计与最小回归验收证据并完成收口          | 完成 | tmp/p2/master-agent-dispatch-audit.json, tmp/p2/master-agent-min-regression.json, tmp/p2/master-agent-dispatch-audit-via-npm.json, tmp/p2/master-agent-min-regression-via-npm.json |
 
 ## 执行记录规范
 

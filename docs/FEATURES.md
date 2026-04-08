@@ -480,6 +480,9 @@
 - REQ-AUTO-04: System MUST pause for explicit user decisions through AskUserQuestion/ask_user after key results
 - REQ-AUTO-05: System MUST re-read ROADMAP.md after each phase to catch dynamically inserted phases
 - REQ-AUTO-06: `--from N` flag MUST start from a specific phase number
+- REQ-AUTO-07: System MUST enforce a main-agent allowlist (phase discovery, subagent delegation, result aggregation, completion-gate routing only)
+- REQ-AUTO-08: System MUST enforce a main-agent denylist (no direct discuss/plan/execute/verify/complete implementation, no ask-gate bypass)
+- REQ-AUTO-09: System MUST apply runtime compatibility tiers (L1 semantic parity, L2 tool mapping parity, text-mode fallback when menu UI is unavailable)
 
 ---
 

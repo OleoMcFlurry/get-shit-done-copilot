@@ -132,6 +132,12 @@ All workflow toggles follow the **absent = enabled** pattern. If a key is missin
 | `workflow.code_review`               | boolean | `true`      | Enable `/gsd-code-review` and `/gsd-code-review-fix` commands. When `false`, the commands exit with a configuration gate message. Added in v1.34                                                                                                                 |
 | `workflow.code_review_depth`         | string  | `standard`  | Default review depth for `/gsd-code-review`: `quick` (pattern-matching only), `standard` (per-file analysis), or `deep` (cross-file with import graphs). Can be overridden per-run with `--depth=`. Added in v1.34                                               |
 
+### Dispatch Guardrail Compatibility
+
+1. `workflow.text_mode` controls numbered-text fallback for completion-gate decisions in runtimes where interactive menus are unavailable.
+2. Runtime tool-name mapping is handled by runtime adapters at install/deploy time, keeping AskUserQuestion semantics consistent across runtimes.
+3. No configuration key is allowed to downgrade dispatch-only orchestration into main-agent inline execution when subagent capability exists.
+
 ### Recommended Presets
 
 | Scenario           | mode          | granularity | profile    | research | plan_check | verifier |

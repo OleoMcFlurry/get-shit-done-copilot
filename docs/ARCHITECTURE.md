@@ -627,12 +627,14 @@ The installer handles all translation at install time. Workflows and agents are 
 1. 主 agent 直接执行 discuss、plan、execute、verify、complete 的实现动作。
 2. 跳过 `completion_gate` 直接结束流程。
 3. 在失败、超时、部分完成场景绕过用户决策分支。
+4. 运行时仍具备子代理能力时，禁止降级为主流程 inline 执行。
 
 ### Runtime Compatibility Strategy
 
-1. L1 兼容：统一使用 AskUserQuestion 或 ask_user 语义，保持问题与选项结构一致。
-2. L2 兼容：运行时适配层负责工具映射，例如 Copilot 的 `vscode_askquestions` 对齐 AskUserQuestion。
-3. 文本回退：当交互式菜单不可用时，依赖 `workflow.text_mode` 输出编号选项保持同等决策能力。
+1. L1 兼容：统一 AskUserQuestion 或 ask_user 的问题语义与选项结构。
+2. L2 兼容：运行时适配层负责等价工具映射，例如 Copilot 的 `vscode_askquestions` 对齐 AskUserQuestion。
+3. 文本回退：交互式菜单不可用时，通过 `workflow.text_mode` 输出编号选项保持同等决策能力。
+4. 强制兜底：运行时缺少 Task 或等效子代理能力时，必须先询问“停止”或“切换环境”，禁止静默降级为主流程执行。
 
 ### Behavior Audit and Drift Prevention
 
