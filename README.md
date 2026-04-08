@@ -656,7 +656,7 @@ You're never locked in. The system adapts.
 | Command | What it does |
 |---------|--------------|
 | `/gsd-settings` | Configure model profile and workflow agents |
-| `/gsd-set-profile <profile>` | Switch model profile (quality/balanced/budget/inherit) |
+| `/gsd-set-profile <profile>` | Switch model profile (quality/balanced/budget/inherit/copilot) |
 | `/gsd-add-todo [desc]` | Capture idea for later |
 | `/gsd-check-todos` | List pending todos |
 | `/gsd-debug [desc]` | Systematic debugging with persistent state |
@@ -668,6 +668,39 @@ You're never locked in. The system adapts.
 | `/gsd-profile-user [--questionnaire] [--refresh]` | Generate developer behavioral profile from session analysis for personalized responses |
 
 <sup>¹ Contributed by reddit user OracleGreyBeard</sup>
+
+---
+
+## Copilot Billing Optimization
+
+GitHub Copilot bills **premium requests** per main-agent user turn only. Sub-agents spawned via the Task tool are not billed separately. This fork adds two features that exploit this billing model:
+
+### 1. Completion Gate
+
+When enabled, the main agent asks "what next?" after every `/gsd-*` command completes instead of ending the session. This means you can chain an unlimited number of tasks — plan, execute, verify, new milestone — all within a single billing unit.
+
+Enable via `/gsd-settings` → **Completion Gate**, or directly:
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs config-set workflow.completion_gate true
+```
+
+### 2. `copilot` Model Profile
+
+The `copilot` profile assigns high-quality models to sub-agents (where quality matters most) while leaving the main agent on the default 0x-rate model:
+
+| Agent type | Model | Why |
+|------------|-------|-----|
+| Planning / architecture | `claude-opus-4.6` | Highest reasoning quality for design decisions |
+| Verification / testing | `claude-sonnet-4.6` | Solid accuracy at lower cost |
+| Execution (TDD) | `gpt-5.3-codex` | Fast, code-focused |
+| Research / docs | `gpt-5.4-mini` | Lightweight, cheap, sufficient for information gathering |
+
+Switch to the copilot profile:
+```
+/gsd-set-profile copilot
+```
+
+Both features are opt-in and independent. Enable one, both, or neither.
 
 ---
 
@@ -693,6 +726,7 @@ Control which Claude model each agent uses. Balance quality vs token spend.
 | `balanced` (default) | Opus | Sonnet | Sonnet |
 | `budget` | Sonnet | Sonnet | Haiku |
 | `inherit` | Inherit | Inherit | Inherit |
+| `copilot` | Opus 4.6 | Codex | Sonnet 4.6 |
 
 Switch profiles:
 ```
@@ -700,6 +734,8 @@ Switch profiles:
 ```
 
 Use `inherit` when using non-Anthropic providers (OpenRouter, local models) or to follow the current runtime model selection (e.g. OpenCode `/model`).
+
+Use `copilot` to maximize sub-agent quality while keeping the main agent on the default (0x billed) model — see [Copilot Billing Optimization](#copilot-billing-optimization) below.
 
 Or configure via `/gsd-settings`.
 
@@ -718,6 +754,7 @@ These spawn additional agents during planning/execution. They improve quality bu
 | `workflow.skip_discuss` | `false` | Skip discuss-phase in autonomous mode |
 | `workflow.text_mode` | `false` | Text-only mode for remote sessions (no TUI menus) |
 | `workflow.use_worktrees` | `true` | Toggle worktree isolation for execution |
+| `workflow.completion_gate` | `false` | After each command completes, ask for the next step — keeps the session alive. Ideal for Copilot billing where only the main-agent turn is charged. |
 
 Use `/gsd-settings` to toggle these, or override per-invocation:
 - `/gsd-plan-phase --skip-research`
