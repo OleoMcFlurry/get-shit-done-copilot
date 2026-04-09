@@ -182,6 +182,14 @@ Exit workflow.
 - Log each auto-selected choice inline so the user can review decisions in the context file
 - After discussion completes, auto-advance to plan-phase (existing behavior)
 
+**Discuss-only mode** — If `--discuss-only` is present in ARGUMENTS:
+- Always combine with `--auto` (e.g. `--auto --discuss-only`) for headless operation
+- Runs the full auto-select logic: all gray areas selected, all decisions made automatically
+- Writes CONTEXT.md normally
+- **Does NOT chain to plan-phase** — overrides `--auto`, `--chain`, and `workflow.auto_advance` config
+- Does NOT modify `workflow._auto_chain_active` config
+- Designed for sprint orchestration where discuss runs first across all phases before any planning begins
+
 **Chain mode** — If `--chain` is present in ARGUMENTS:
 - Discussion is fully interactive (questions, gray area selection — same as default mode)
 - After discussion completes, auto-advance to plan-phase → execute-phase (same as `--auto`)
@@ -1103,6 +1111,10 @@ node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(state): record
 </step>
 
 <step name="auto_advance">
+**If `--discuss-only` is present in ARGUMENTS:**
+CONTEXT.md has been written. This is the complete goal for discuss-only mode.
+Do NOT set `workflow._auto_chain_active`. Do NOT invoke plan-phase. Skip this entire step and return normally.
+
 Check for auto-advance trigger:
 
 1. Parse `--auto` and `--chain` flags from $ARGUMENTS

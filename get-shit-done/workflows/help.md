@@ -118,6 +118,45 @@ Execute all plans in a phase, or run a specific wave.
 Usage: `/gsd-execute-phase 5`
 Usage: `/gsd-execute-phase 5 --wave 2`
 
+### Autonomous Execution
+
+**`/gsd-autonomous [--from N] [--to N] [--only N] [--interactive]`**
+Run all remaining phases autonomously — discuss→plan→execute per phase, no interruptions.
+
+- Discovers all incomplete phases from ROADMAP.md
+- For each phase: discuss (or skip if CONTEXT.md exists) → plan → execute
+- Pauses only for explicit user decisions (grey area acceptance, blockers)
+- After all phases: milestone audit → complete → cleanup
+- `--from N` / `--to N` / `--only N` for scoped execution
+- `--interactive` — discuss runs inline with questions, plan+execute in background
+
+Usage: `/gsd-autonomous`
+Usage: `/gsd-autonomous --from 3 --to 6`
+Usage: `/gsd-autonomous --only 4`
+
+---
+
+**`/gsd-sprint [--from-scratch] [--auto] [--skip-discuss] [--from N] [--to N]`**
+Front-load all phase decisions upfront, then execute all phases non-stop.
+
+Unlike `/gsd-autonomous` (which interleaves discuss→plan→execute per phase), sprint front-loads all decisions first:
+
+1. **Discuss all phases sequentially** — each phase gets `--discuss-only` so decisions are captured without triggering plan+execute. Sequential order preserves cross-phase context consistency.
+2. **Single review gate** — shows a consolidated SPRINT-SUMMARY.md with up to 5 key decisions per phase; lets you re-discuss any phase before execution begins.
+3. **Autonomous execution** — delegates to `/gsd-autonomous` with all CONTEXT.md files pre-populated; phases skip discuss and go straight to plan→execute.
+
+Use when you want to review all architectural decisions before any code is written.
+
+- `--from-scratch` — run `/gsd-new-milestone` first
+- `--auto` — skip the review gate; execute immediately after discuss
+- `--skip-discuss` — skip Stage 2; acts like `/gsd-autonomous` with intake gate
+- `--from N` / `--to N` — scope to a phase range
+
+Usage: `/gsd-sprint`
+Usage: `/gsd-sprint --from 3 --to 8`
+Usage: `/gsd-sprint --auto`
+Usage: `/gsd-sprint --from-scratch`
+
 ### Smart Router
 
 **`/gsd-do <description>`**
@@ -558,6 +597,14 @@ Example config:
 /gsd-plan-phase 1       # Create plans for first phase
 /clear
 /gsd-execute-phase 1    # Execute all plans in phase
+```
+
+**Running all phases autonomously:**
+
+```
+/gsd-autonomous          # discuss→plan→execute all remaining phases
+/gsd-sprint              # front-load all decisions first, then execute
+/gsd-sprint --auto       # front-load discuss, skip review gate, execute
 ```
 
 **Resuming work after a break:**

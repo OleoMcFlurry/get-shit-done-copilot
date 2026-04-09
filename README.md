@@ -702,6 +702,31 @@ Switch to the copilot profile:
 
 Both features are opt-in and independent. Enable one, both, or neither.
 
+### 3. `gsd-sprint` Command
+
+Front-loads all phase decisions before writing any code, then hands off to autonomous execution in one continuous run. This eliminates mid-execution context-switches for discuss questions — decisions are batched, reviewed, then code is written non-stop.
+
+**How it differs from `/gsd-autonomous`:**
+
+| | `/gsd-autonomous` | `/gsd-sprint` |
+|---|---|---|
+| Discuss timing | Per-phase (interleaved with plan+execute) | All phases upfront, in order |
+| Review gate | None | Single summary gate before any code is written |
+| Context consistency | Each phase sees prior phases' committed CONTEXT.md | Guaranteed sequential — each phase inherits previous choices |
+| Best for | Trusted automation, resuming mid-run | Starting a sprint where design decisions matter upfront |
+
+**Usage:**
+
+```
+/gsd-sprint                      # discuss all phases → review → execute all
+/gsd-sprint --auto               # discuss all phases → skip review → execute all
+/gsd-sprint --from 3 --to 8      # scope to a phase range
+/gsd-sprint --skip-discuss       # skip discuss (equivalent to /gsd-autonomous with intake gate)
+/gsd-sprint --from-scratch       # run /gsd-new-milestone first, then sprint
+```
+
+The `--discuss-only` flag is also added to `discuss-phase` internals to prevent auto-chaining. Sprint uses this to run discuss across all phases without triggering plan+execute per phase.
+
 ---
 
 ## Configuration
