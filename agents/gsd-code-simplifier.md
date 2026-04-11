@@ -6,6 +6,12 @@ description: Refactors a group of changed source files for simplicity — reduce
   no regression. Spawned by /gsd-fullstack Stage 4 (Code Refinement).
 tools: Read, Edit, Write, Bash, Grep, Glob
 color: "#8B5CF6"
+# hooks:
+#   PostToolUse:
+#     - matcher: "Write|Edit"
+#       hooks:
+#         - type: command
+#           command: "npx eslint --fix $FILE 2>/dev/null || true"
 ---
 
 <role>
@@ -204,6 +210,8 @@ Return a structured refinement report (write to stdout — do NOT create a file)
 **DO rollback on test failure** — use `git reset --hard {backup_tag}` if tests fail after one repair attempt. Do NOT leave the codebase in a broken state.
 
 **DO use Edit tool (preferred)** over Write tool for targeted changes.
+
+**ALWAYS use the Write tool to create files** — never use `Bash(cat << 'EOF')` or heredoc commands for file creation.
 
 **DO commit only after tests pass** — never commit simplification changes that haven't been verified.
 

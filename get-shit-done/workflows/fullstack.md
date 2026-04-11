@@ -1011,6 +1011,7 @@ SKIP_REFINE=false
 AUTO_MODE=false
 RESUME_MODE=false
 AUTO_EXEC_MODE=false
+TEXT_MODE=false
 DOC_PATH=""
 
 if echo "$ARGUMENTS" | grep -q '\-\-auto'; then AUTO_MODE=true; fi
@@ -1018,8 +1019,11 @@ if echo "$ARGUMENTS" | grep -q '\-\-skip-discuss'; then SKIP_DISCUSS=true; fi
 if echo "$ARGUMENTS" | grep -q '\-\-skip-refine'; then SKIP_REFINE=true; fi
 if echo "$ARGUMENTS" | grep -q '\-\-resume'; then RESUME_MODE=true; fi
 if echo "$ARGUMENTS" | grep -q '\-\-auto-exec'; then AUTO_EXEC_MODE=true; fi
+if echo "$ARGUMENTS" | grep -q '\-\-text'; then TEXT_MODE=true; fi
 DOC_PATH=$(echo "$ARGUMENTS" | grep -oE '@[^ ]+' | sed 's/@//' || true)
 ```
+
+**TEXT_MODE 说明**：当 `--text` 参数存在，或初始化 JSON 中 `text_mode: true` 时，设置 `TEXT_MODE=true`。在 TEXT_MODE 激活状态下，所有 AskUserQuestion 调用替换为纯文本编号列表（plain-text numbered list），要求用户输入选项序号，确保非 Claude 运行时（OpenAI Codex、Gemini 等）也能正常处理交互。
 
 **`--auto-exec` flag 处理**：设置 `AUTO_EXEC_MODE=true`，在阶段 0 初始化时写入 `FULLSTACK-STATE.md: auto_mode: true`。阶段 0-2 正常交互，阶段 3 开始连续自动执行，全部完成后统一 ask_user 最终确认。
 

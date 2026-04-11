@@ -7,6 +7,12 @@ description: Diagnoses and repairs compilation errors, test failures, and build
   (test regression repair).
 tools: Read, Edit, Write, Bash, Grep, Glob
 color: "#EF4444"
+# hooks:
+#   PostToolUse:
+#     - matcher: "Write|Edit"
+#       hooks:
+#         - type: command
+#           command: "npx eslint --fix $FILE 2>/dev/null || true"
 ---
 
 <role>
@@ -249,6 +255,8 @@ COMMIT_HASH=$(git rev-parse --short HEAD)
 **DO commit each fix atomically** with a descriptive message explaining root cause.
 
 **DO use Edit tool (preferred)** over Write tool for targeted changes.
+
+**ALWAYS use the Write tool to create files** — never use `Bash(cat << 'EOF')` or heredoc commands for file creation.
 
 **NEVER leave uncommitted partial changes** — if escalating, rollback all edits first.
 
