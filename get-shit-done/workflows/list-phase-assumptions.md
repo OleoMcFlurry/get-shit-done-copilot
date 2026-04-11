@@ -9,6 +9,8 @@ Key difference from discuss-phase: This is ANALYSIS of what Claude thinks, not I
 <step name="validate_phase" priority="first">
 Phase number: $ARGUMENTS (required)
 
+**Text mode (`workflow.text_mode: true` in config or `--text` flag):** Set `TEXT_MODE=true` if `--text` is present in `$ARGUMENTS` OR `text_mode` from init JSON is `true`. When TEXT_MODE is active, replace every `AskUserQuestion` call with a plain-text numbered list and ask the user to type their choice number. This is required for non-Claude runtimes (OpenAI Codex, Gemini CLI, etc.) where `AskUserQuestion` is not available.
+
 **If argument missing,** prompt the user via AskUserQuestion:
 
 ```

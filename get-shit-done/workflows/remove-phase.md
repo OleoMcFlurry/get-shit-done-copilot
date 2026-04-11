@@ -14,6 +14,8 @@ Parse the command arguments:
 - Example: `/gsd-remove-phase 17` → phase = 17
 - Example: `/gsd-remove-phase 16.1` → phase = 16.1
 
+**Text mode (`workflow.text_mode: true` in config or `--text` flag):** Set `TEXT_MODE=true` if `--text` is present in `$ARGUMENTS` OR `text_mode` from init JSON is `true`. When TEXT_MODE is active, replace every `AskUserQuestion` call with a plain-text numbered list and ask the user to type their choice number. This is required for non-Claude runtimes (OpenAI Codex, Gemini CLI, etc.) where `AskUserQuestion` is not available.
+
 If no argument provided, prompt the user via AskUserQuestion:
 
 ```

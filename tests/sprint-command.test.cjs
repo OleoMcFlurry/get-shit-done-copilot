@@ -29,7 +29,7 @@ describe('gsd-sprint command definition', () => {
 
   test('argument-hint includes all five sprint flags', () => {
     const content = fs.readFileSync(commandPath, 'utf8');
-    const hintMatch = content.match(/argument-hint:.*\n/);
+    const hintMatch = content.match(/argument-hint:.*\r?\n/);
     assert.ok(hintMatch, 'command should have argument-hint');
     assert.ok(content.includes('--from-scratch'), 'argument-hint should include --from-scratch');
     assert.ok(content.includes('--auto'), 'argument-hint should include --auto');
