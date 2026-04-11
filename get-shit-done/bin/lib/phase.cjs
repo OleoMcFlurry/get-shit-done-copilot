@@ -340,7 +340,9 @@ function cmdPhaseAdd(cwd, description, raw, customId) {
       if (!_newPhaseId) error('--id required when phase_naming is "custom"');
       _dirName = `${prefix}${_newPhaseId}-${slug}`;
     } else {
-      // Sequential mode: find highest integer phase number (in current milestone only)
+      // Sequential mode: find highest integer phase number from two sources:
+      // 1. ROADMAP.md (current milestone only)
+      // 2. .planning/phases/ on disk (orphan directories not tracked in roadmap)
       // Skip 999.x backlog phases — they live outside the active sequence
       const phasePattern = /#{2,4}\s*Phase\s+(\d+)[A-Z]?(?:\.\d+)*:/gi;
       let maxPhase = 0;
@@ -349,6 +351,21 @@ function cmdPhaseAdd(cwd, description, raw, customId) {
         const num = parseInt(m[1], 10);
         if (num >= 999) continue; // backlog phases use 999.x numbering
         if (num > maxPhase) maxPhase = num;
+      }
+
+      // Also scan .planning/phases/ for orphan directories not tracked in ROADMAP.
+      // Directory names follow: [PREFIX-]NN-slug (e.g. 03-api or CK-05-old-feature).
+      // Strip the optional project_code prefix before extracting the leading integer.
+      const phasesOnDisk = path.join(planningDir(cwd), 'phases');
+      if (fs.existsSync(phasesOnDisk)) {
+        const dirNumPattern = /^(?:[A-Z][A-Z0-9]*-)?(\d+)-/;
+        for (const entry of fs.readdirSync(phasesOnDisk)) {
+          const match = entry.match(dirNumPattern);
+          if (!match) continue;
+          const num = parseInt(match[1], 10);
+          if (num >= 999) continue; // skip backlog orphans
+          if (num > maxPhase) maxPhase = num;
+        }
       }
 
       _newPhaseId = maxPhase + 1;
@@ -712,7 +729,7 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
         `(-\\s*\\[)[ ](\\]\\s*.*Phase\\s+${escapeRegex(phaseNum)}[:\\s][^\\n]*)`,
         'i'
       );
-      roadmapContent = replaceInCurrentMilestone(roadmapContent, checkboxPattern, `$1x$2 (completed ${today})`);
+      roadmapContent = roadmapContent.replace(checkboxPattern, `$1x$2 (completed ${today})`);
 
       // Progress table: update Status to Complete, add date (handles 4 or 5 column tables)
       const phaseEscaped = escapeRegex(phaseNum);
@@ -736,13 +753,20 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
         return '|' + cells.join('|') + '|';
       });
 
-      // Update plan count in phase section
+      // Update plan count in phase section.
+      // Use direct .replace() rather than replaceInCurrentMilestone() so this
+      // works when the current milestone section is itself inside a <details>
+      // block (the standard /gsd-new-project layout). replaceInCurrentMilestone
+      // scopes to content after the last </details>, which misses content inside
+      // the current milestone's own <details> wrapper (#2005).
+      // The phase-scoped heading pattern is specific enough to avoid matching
+      // archived phases (which belong to different milestones).
       const planCountPattern = new RegExp(
         `(#{2,4}\\s*Phase\\s+${phaseEscaped}[\\s\\S]*?\\*\\*Plans:\\*\\*\\s*)[^\\n]+`,
         'i'
       );
-      roadmapContent = replaceInCurrentMilestone(
-        roadmapContent, planCountPattern,
+      roadmapContent = roadmapContent.replace(
+        planCountPattern,
         `$1${summaryCount}/${planCount} plans complete`
       );
 
