@@ -12,6 +12,7 @@
     "security_block_on": "high",
     "discuss_mode": "discuss",
     "research_before_questions": false,
+    "code_review_command": null,
     "plan_bounce": false,
     "plan_bounce_script": null,
     "plan_bounce_passes": 2
