@@ -6231,11 +6231,35 @@ function finishInstall(settingsPath, settings, statuslineCommand, shouldInstallS
     configureKiloPermissions(isGlobal, configDir);
   }
 
-  // For non-Claude runtimes, set resolve_model_ids: "omit" in ~/.gsd/defaults.json
-  // so resolveModelInternal() returns '' instead of Claude aliases (opus/sonnet/haiku)
-  // that the runtime can't resolve. Users can still use model_overrides for explicit IDs.
-  // See #1156.
-  if (runtime !== 'claude') {
+  // For Copilot runtime, activate the copilot model profile so resolveModelInternal()
+  // uses the full model IDs defined in model-profiles.cjs (copilot column).
+  // For other non-Claude runtimes, set resolve_model_ids: "omit" so resolveModelInternal()
+  // returns '' instead of Claude aliases (opus/sonnet/haiku) that the runtime can't resolve.
+  // Users can still use model_overrides for explicit IDs. See #1156.
+  if (runtime === 'copilot') {
+    const gsdDir = path.join(os.homedir(), '.gsd');
+    const defaultsPath = path.join(gsdDir, 'defaults.json');
+    try {
+      fs.mkdirSync(gsdDir, { recursive: true });
+      let defaults = {};
+      try { defaults = JSON.parse(fs.readFileSync(defaultsPath, 'utf8')); } catch { /* new file */ }
+      let changed = false;
+      if (defaults.model_profile !== 'copilot') {
+        defaults.model_profile = 'copilot';
+        changed = true;
+      }
+      if (defaults.resolve_model_ids !== false) {
+        defaults.resolve_model_ids = false;
+        changed = true;
+      }
+      if (changed) {
+        fs.writeFileSync(defaultsPath, JSON.stringify(defaults, null, 2) + '\n');
+        console.log(`  ${green}✓${reset} Set model_profile: "copilot" and resolve_model_ids: false in ~/.gsd/defaults.json`);
+      }
+    } catch (e) {
+      console.log(`  ${yellow}⚠${reset} Could not write ~/.gsd/defaults.json: ${e.message}`);
+    }
+  } else if (runtime !== 'claude') {
     const gsdDir = path.join(os.homedir(), '.gsd');
     const defaultsPath = path.join(gsdDir, 'defaults.json');
     try {
