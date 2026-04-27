@@ -240,3 +240,9 @@ Next steps:
 - If capture_thought is unavailable, the workflow must not fail — graceful degradation to file-only output
 - LEARNINGS.md frontmatter must include counts for all 4 categories and list any missing_artifacts
 </critical_rules>
+
+## Completion Gate
+
+@参考 get-shit-done/references/completion-gate.md
+
+只有当配置文件中的 `workflow.completion_gate` 设置为 `true` 时，此闸门才会生效。

@@ -283,3 +283,9 @@ The sketch-findings skill will auto-load when building the UI.
 - [ ] Summary presented
 - [ ] Next-step options presented (including frontier sketch exploration via `/gsd-sketch`)
 </success_criteria>
+
+## Completion Gate
+
+@参考 get-shit-done/references/completion-gate.md
+
+只有当配置文件中的 `workflow.completion_gate` 设置为 `true` 时，此闸门才会生效。

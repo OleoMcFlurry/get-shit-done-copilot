@@ -495,3 +495,9 @@ Otherwise, route to `confirm_creation` (manual next steps).
 - `--chain` and `--auto` both persist chain flag and auto-advance to plan-phase
 - Per-mode bodies, templates, and advisor flow are lazy-loaded — parent stays under the workflow size budget enforced by `tests/workflow-size-budget.test.cjs`
 </success_criteria>
+
+## Completion Gate
+
+@参考 get-shit-done/references/completion-gate.md
+
+只有当配置文件中的 `workflow.completion_gate` 设置为 `true` 时，此闸门才会生效。

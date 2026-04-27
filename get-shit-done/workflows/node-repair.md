@@ -90,3 +90,9 @@ All repair actions must appear in SUMMARY.md under "## Deviations from Plan":
 - DECOMPOSE sub-tasks must be more specific than the original, not synonymous rewrites.
 - If config.json `workflow.node_repair` is `false`, skip directly to verification_failure_gate (user retains original behavior).
 </constraints>
+
+## Completion Gate
+
+@参考 get-shit-done/references/completion-gate.md
+
+只有当配置文件中的 `workflow.completion_gate` 设置为 `true` 时，此闸门才会生效。

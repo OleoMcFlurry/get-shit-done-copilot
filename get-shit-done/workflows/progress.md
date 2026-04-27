@@ -617,3 +617,9 @@ Then for each failed check, add a concrete next action:
 - [ ] User confirms before any action
 - [ ] Seamless handoff to appropriate gsd command
       </success_criteria>
+
+## Completion Gate
+
+@参考 get-shit-done/references/completion-gate.md
+
+只有当配置文件中的 `workflow.completion_gate` 设置为 `true` 时，此闸门才会生效。

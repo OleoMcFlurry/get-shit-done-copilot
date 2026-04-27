@@ -1159,3 +1159,9 @@ End workflow.
 - [ ] scan_for_secrets ran before commit and blocked on detected patterns
 - [ ] --verify-only invokes gsd-doc-verifier for full fact-checking (not just VERIFY marker count)
 </success_criteria>
+
+## Completion Gate
+
+@参考 get-shit-done/references/completion-gate.md
+
+只有当配置文件中的 `workflow.completion_gate` 设置为 `true` 时，此闸门才会生效。

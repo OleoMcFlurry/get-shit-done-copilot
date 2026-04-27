@@ -327,3 +327,9 @@ After agent returns → go back to **step 5a** (review again).
 - [ ] Stall detection reported when HIGH count not decreasing
 - [ ] STATE.md updated on convergence completion
 </success_criteria>
+
+## Completion Gate
+
+@参考 get-shit-done/references/completion-gate.md
+
+只有当配置文件中的 `workflow.completion_gate` 设置为 `true` 时，此闸门才会生效。

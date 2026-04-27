@@ -260,3 +260,9 @@ Next: /gsd-discuss-phase {X}
 - SPEC.md committed atomically (when commit_docs is true)
 - User directed to /gsd-discuss-phase as next step
 </success_criteria>
+
+## Completion Gate
+
+@参考 get-shit-done/references/completion-gate.md
+
+只有当配置文件中的 `workflow.completion_gate` 设置为 `true` 时，此闸门才会生效。

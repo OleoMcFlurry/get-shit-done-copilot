@@ -330,3 +330,9 @@ Do NOT:
 - Bypass the discovery approval gate — users must see the classified doc list before classifiers spawn
 - Skip path validation on `SCAN_PATH` or `MANIFEST_PATH`
 - Implement `--resolve interactive` in this v1 — the flag is reserved; reject with a future-release message
+
+## Completion Gate
+
+@参考 get-shit-done/references/completion-gate.md
+
+只有当配置文件中的 `workflow.completion_gate` 设置为 `true` 时，此闸门才会生效。

@@ -180,3 +180,9 @@ Sync complete: <N> skills synced to <M> runtime(s).
 - Sync copies files verbatim and does not apply runtime-specific content transformations. Use the GSD installer directly for runtimes that require format conversion.
 - Cross-project skills (`.agents/skills/`) are out of scope — this command only touches global runtime skills roots.
 - Bidirectional sync is not supported. Choose one canonical source with `--from`.
+
+## Completion Gate
+
+@参考 get-shit-done/references/completion-gate.md
+
+只有当配置文件中的 `workflow.completion_gate` 设置为 `true` 时，此闸门才会生效。

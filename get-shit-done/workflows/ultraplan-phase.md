@@ -187,3 +187,9 @@ Your terminal will show a `◇ ultraplan` status indicator while the remote sess
 Use `/tasks` to open the detail view with the session link, agent activity, and a stop action.
 
 </step>
+
+## Completion Gate
+
+@参考 get-shit-done/references/completion-gate.md
+
+只有当配置文件中的 `workflow.completion_gate` 设置为 `true` 时，此闸门才会生效。

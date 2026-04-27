@@ -193,3 +193,9 @@ On the first transition after upgrading to a version that includes this workflow
 - Fewer than `graduation_threshold` prior phases with LEARNINGS.md
 - Total items < 5 across the window
 - All qualifying clusters are in `graduation_backlog` as dismissed
+
+## Completion Gate
+
+@参考 get-shit-done/references/completion-gate.md
+
+只有当配置文件中的 `workflow.completion_gate` 设置为 `true` 时，此闸门才会生效。
