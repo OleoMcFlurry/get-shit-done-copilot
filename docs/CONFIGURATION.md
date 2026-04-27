@@ -47,6 +47,7 @@ GSD stores project settings in `.planning/config.json`. Created during `/gsd-new
     "plan_bounce_passes": 2,
     "plan_chunked": false,
     "code_review_command": null,
+    "completion_gate": true,
     "cross_ai_execution": false,
     "cross_ai_command": null,
     "cross_ai_timeout": 300,
@@ -110,25 +111,25 @@ GSD stores project settings in `.planning/config.json`. Created during `/gsd-new
 
 ## Core Settings
 
-| Setting | Type | Options | Default | Description |
-|---------|------|---------|---------|-------------|
-| `mode` | enum | `interactive`, `yolo` | `interactive` | `yolo` auto-approves decisions; `interactive` confirms at each step |
-| `granularity` | enum | `coarse`, `standard`, `fine` | `standard` | Controls phase count: `coarse` (3-5), `standard` (5-8), `fine` (8-12) |
-| `model_profile` | enum | `quality`, `balanced`, `budget`, `adaptive`, `inherit` | `balanced` | Model tier for each agent (see [Model Profiles](#model-profiles)). `adaptive` was added per [#1713](https://github.com/gsd-build/get-shit-done/issues/1713) / [#1806](https://github.com/gsd-build/get-shit-done/issues/1806) and resolves the same way as the other tiers under runtime-aware profiles. |
-| `runtime` | string | `claude`, `codex`, or any string | (none) | Active runtime for [runtime-aware profile resolution](#runtime-aware-profiles-2517). When set, profile tiers (opus/sonnet/haiku) resolve to runtime-native model IDs. Today only the Codex install path emits per-agent model IDs from this resolver; other runtimes (`opencode`, `gemini`, `qwen`, `copilot`, …) consume the resolver at spawn time and gain dedicated install-path support in [#2612](https://github.com/gsd-build/get-shit-done/issues/2612). When unset (default), behavior is unchanged from prior versions. Added in v1.39 |
-| `model_profile_overrides.<runtime>.<tier>` | string \| object | per-runtime tier override | (none) | Override the runtime-aware tier mapping for a specific `(runtime, tier)`. Tier is one of `opus`, `sonnet`, `haiku`. Value is either a model ID string (e.g. `"gpt-5-pro"`) or `{ model, reasoning_effort }`. See [Runtime-Aware Profiles](#runtime-aware-profiles-2517). Added in v1.39 |
-| `project_code` | string | any short string | (none) | Prefix for phase directory names (e.g., `"ABC"` produces `ABC-01-setup/`). Added in v1.31 |
-| `response_language` | string | language code | (none) | Language for agent responses (e.g., `"pt"`, `"ko"`, `"ja"`). Propagates to all spawned agents for cross-phase language consistency. Added in v1.32 |
-| `context_window` | number | any integer | `200000` | Context window size in tokens. Set `1000000` for 1M-context models (e.g., `claude-opus-4-7[1m]`). Values `>= 500000` enable adaptive context enrichment (full-body reads of prior SUMMARY.md, deeper anti-pattern reads). Configured via `/gsd-settings-advanced`. |
-| `context_profile` | string | `dev`, `research`, `review` | (none) | Execution context preset that applies a pre-configured bundle of mode, model, and workflow settings for the current type of work. Added in v1.34 |
-| `claude_md_path` | string | any file path | `./CLAUDE.md` | Custom output path for the generated CLAUDE.md file. Useful for monorepos or projects that need CLAUDE.md in a non-root location. Defaults to `./CLAUDE.md` at the project root. Added in v1.36 |
-| `claude_md_assembly.mode` | enum | `embed`, `link` | `embed` | Controls how managed sections are written into CLAUDE.md. `embed` (default) inlines content between GSD markers. `link` writes `@.planning/<source-path>` instead — Claude Code expands the reference at runtime, reducing CLAUDE.md size by ~65% on typical projects. `link` only applies to sections that have a real source file; `workflow` and fallback sections always embed. Per-block overrides: `claude_md_assembly.blocks.<section>` (e.g. `claude_md_assembly.blocks.architecture: link`). Added in v1.38 |
-| `context` | string | any text | (none) | Custom context string injected into every agent prompt for the project. Use to provide persistent project-specific guidance (e.g., coding conventions, team practices) that every agent should be aware of |
-| `phase_naming` | string | any string | (none) | Custom prefix for phase directory names. When set, overrides the auto-generated phase slug (e.g., `"feature"` produces `feature-01-setup/` instead of the roadmap-derived slug) |
-| `brave_search` | boolean | `true`/`false` | auto-detected | Override auto-detection of Brave Search API availability. When unset, GSD checks for `BRAVE_API_KEY` env var or `~/.gsd/brave_api_key` file |
-| `firecrawl` | boolean | `true`/`false` | auto-detected | Override auto-detection of Firecrawl API availability. When unset, GSD checks for `FIRECRAWL_API_KEY` env var or `~/.gsd/firecrawl_api_key` file |
-| `exa_search` | boolean | `true`/`false` | auto-detected | Override auto-detection of Exa Search API availability. When unset, GSD checks for `EXA_API_KEY` env var or `~/.gsd/exa_api_key` file |
-| `search_gitignored` | boolean | `true`/`false` | `false` | Legacy top-level alias for `planning.search_gitignored`. Prefer the namespaced form; this alias is accepted for backward compatibility |
+| Setting                                    | Type             | Options                                                | Default       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------------------ | ---------------- | ------------------------------------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mode`                                     | enum             | `interactive`, `yolo`                                  | `interactive` | `yolo` auto-approves decisions; `interactive` confirms at each step                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `granularity`                              | enum             | `coarse`, `standard`, `fine`                           | `standard`    | Controls phase count: `coarse` (3-5), `standard` (5-8), `fine` (8-12)                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `model_profile`                            | enum             | `quality`, `balanced`, `budget`, `adaptive`, `inherit` | `balanced`    | Model tier for each agent (see [Model Profiles](#model-profiles)). `adaptive` was added per [#1713](https://github.com/gsd-build/get-shit-done/issues/1713) / [#1806](https://github.com/gsd-build/get-shit-done/issues/1806) and resolves the same way as the other tiers under runtime-aware profiles.                                                                                                                                                                                                                                         |
+| `runtime`                                  | string           | `claude`, `codex`, or any string                       | (none)        | Active runtime for [runtime-aware profile resolution](#runtime-aware-profiles-2517). When set, profile tiers (opus/sonnet/haiku) resolve to runtime-native model IDs. Today only the Codex install path emits per-agent model IDs from this resolver; other runtimes (`opencode`, `gemini`, `qwen`, `copilot`, …) consume the resolver at spawn time and gain dedicated install-path support in [#2612](https://github.com/gsd-build/get-shit-done/issues/2612). When unset (default), behavior is unchanged from prior versions. Added in v1.39 |
+| `model_profile_overrides.<runtime>.<tier>` | string \| object | per-runtime tier override                              | (none)        | Override the runtime-aware tier mapping for a specific `(runtime, tier)`. Tier is one of `opus`, `sonnet`, `haiku`. Value is either a model ID string (e.g. `"gpt-5-pro"`) or `{ model, reasoning_effort }`. See [Runtime-Aware Profiles](#runtime-aware-profiles-2517). Added in v1.39                                                                                                                                                                                                                                                          |
+| `project_code`                             | string           | any short string                                       | (none)        | Prefix for phase directory names (e.g., `"ABC"` produces `ABC-01-setup/`). Added in v1.31                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `response_language`                        | string           | language code                                          | (none)        | Language for agent responses (e.g., `"pt"`, `"ko"`, `"ja"`). Propagates to all spawned agents for cross-phase language consistency. Added in v1.32                                                                                                                                                                                                                                                                                                                                                                                               |
+| `context_window`                           | number           | any integer                                            | `200000`      | Context window size in tokens. Set `1000000` for 1M-context models (e.g., `claude-opus-4-7[1m]`). Values `>= 500000` enable adaptive context enrichment (full-body reads of prior SUMMARY.md, deeper anti-pattern reads). Configured via `/gsd-settings-advanced`.                                                                                                                                                                                                                                                                               |
+| `context_profile`                          | string           | `dev`, `research`, `review`                            | (none)        | Execution context preset that applies a pre-configured bundle of mode, model, and workflow settings for the current type of work. Added in v1.34                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `claude_md_path`                           | string           | any file path                                          | `./CLAUDE.md` | Custom output path for the generated CLAUDE.md file. Useful for monorepos or projects that need CLAUDE.md in a non-root location. Defaults to `./CLAUDE.md` at the project root. Added in v1.36                                                                                                                                                                                                                                                                                                                                                  |
+| `claude_md_assembly.mode`                  | enum             | `embed`, `link`                                        | `embed`       | Controls how managed sections are written into CLAUDE.md. `embed` (default) inlines content between GSD markers. `link` writes `@.planning/<source-path>` instead — Claude Code expands the reference at runtime, reducing CLAUDE.md size by ~65% on typical projects. `link` only applies to sections that have a real source file; `workflow` and fallback sections always embed. Per-block overrides: `claude_md_assembly.blocks.<section>` (e.g. `claude_md_assembly.blocks.architecture: link`). Added in v1.38                             |
+| `context`                                  | string           | any text                                               | (none)        | Custom context string injected into every agent prompt for the project. Use to provide persistent project-specific guidance (e.g., coding conventions, team practices) that every agent should be aware of                                                                                                                                                                                                                                                                                                                                       |
+| `phase_naming`                             | string           | any string                                             | (none)        | Custom prefix for phase directory names. When set, overrides the auto-generated phase slug (e.g., `"feature"` produces `feature-01-setup/` instead of the roadmap-derived slug)                                                                                                                                                                                                                                                                                                                                                                  |
+| `brave_search`                             | boolean          | `true`/`false`                                         | auto-detected | Override auto-detection of Brave Search API availability. When unset, GSD checks for `BRAVE_API_KEY` env var or `~/.gsd/brave_api_key` file                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `firecrawl`                                | boolean          | `true`/`false`                                         | auto-detected | Override auto-detection of Firecrawl API availability. When unset, GSD checks for `FIRECRAWL_API_KEY` env var or `~/.gsd/firecrawl_api_key` file                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `exa_search`                               | boolean          | `true`/`false`                                         | auto-detected | Override auto-detection of Exa Search API availability. When unset, GSD checks for `EXA_API_KEY` env var or `~/.gsd/exa_api_key` file                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `search_gitignored`                        | boolean          | `true`/`false`                                         | `false`       | Legacy top-level alias for `planning.search_gitignored`. Prefer the namespaced form; this alias is accepted for backward compatibility                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 > **Note:** `granularity` was renamed from `depth` in v1.22.3. Existing configs are auto-migrated.
 
@@ -136,17 +137,17 @@ GSD stores project settings in `.planning/config.json`. Created during `/gsd-new
 
 ## Integration Settings
 
-Configured interactively via [`/gsd-settings-integrations`](COMMANDS.md#gsd-settings-integrations). These are *connectivity* settings — API keys and cross-tool routing — and are intentionally kept separate from `/gsd-settings` (workflow toggles).
+Configured interactively via [`/gsd-settings-integrations`](COMMANDS.md#gsd-settings-integrations). These are _connectivity_ settings — API keys and cross-tool routing — and are intentionally kept separate from `/gsd-settings` (workflow toggles).
 
 ### Search API keys
 
 API key fields accept a string value (the key itself). They can also be set to the sentinels `true`/`false`/`null` to override auto-detection from env vars / `~/.gsd/*_api_key` files (legacy behavior, see rows above).
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `brave_search` | string \| boolean \| null | `null` | Brave Search API key used for web research. Displayed as `****<last-4>` in all UI / `config-set` output; never echoed plaintext |
-| `firecrawl` | string \| boolean \| null | `null` | Firecrawl API key for deep-crawl scraping. Masked in display |
-| `exa_search` | string \| boolean \| null | `null` | Exa Search API key for semantic search. Masked in display |
+| Setting        | Type                      | Default | Description                                                                                                                     |
+| -------------- | ------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `brave_search` | string \| boolean \| null | `null`  | Brave Search API key used for web research. Displayed as `****<last-4>` in all UI / `config-set` output; never echoed plaintext |
+| `firecrawl`    | string \| boolean \| null | `null`  | Firecrawl API key for deep-crawl scraping. Masked in display                                                                    |
+| `exa_search`   | string \| boolean \| null | `null`  | Exa Search API key for semantic search. Masked in display                                                                       |
 
 **Masking convention (`get-shit-done/bin/lib/secrets.cjs`):** keys 8+ characters render as `****<last-4>`; shorter keys render as `****`; `null`/empty renders as `(unset)`. Plaintext is written as-is to `.planning/config.json` — that file is the security boundary — but the CLI, confirmation tables, logs, and `AskUserQuestion` descriptions never display the plaintext. This applies to the `config-set` command output itself: `config-set brave_search <key>` returns a JSON payload with the value masked.
 
@@ -154,12 +155,12 @@ API key fields accept a string value (the key itself). They can also be set to t
 
 `review.models.<cli>` maps a reviewer flavor to a shell command. The code-review workflow shells out using this command when a matching flavor is requested.
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `review.models.claude` | string | (session model) | Command for Claude-flavored review. Defaults to the session model when unset |
-| `review.models.codex` | string | `null` | Command for Codex review, e.g. `"codex exec --model gpt-5"` |
-| `review.models.gemini` | string | `null` | Command for Gemini review, e.g. `"gemini -m gemini-2.5-pro"` |
-| `review.models.opencode` | string | `null` | Command for OpenCode review, e.g. `"opencode run --model claude-sonnet-4"` |
+| Setting                  | Type   | Default         | Description                                                                  |
+| ------------------------ | ------ | --------------- | ---------------------------------------------------------------------------- |
+| `review.models.claude`   | string | (session model) | Command for Claude-flavored review. Defaults to the session model when unset |
+| `review.models.codex`    | string | `null`          | Command for Codex review, e.g. `"codex exec --model gpt-5"`                  |
+| `review.models.gemini`   | string | `null`          | Command for Gemini review, e.g. `"gemini -m gemini-2.5-pro"`                 |
+| `review.models.opencode` | string | `null`          | Command for OpenCode review, e.g. `"opencode run --model claude-sonnet-4"`   |
 
 The `<cli>` slug is validated against `[a-zA-Z0-9_-]+`. Empty or path-containing slugs are rejected by `config-set`.
 
@@ -173,64 +174,65 @@ The `<cli>` slug is validated against `[a-zA-Z0-9_-]+`. Empty or path-containing
 
 All workflow toggles follow the **absent = enabled** pattern. If a key is missing from config, it defaults to `true`.
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `workflow.research` | boolean | `true` | Domain investigation before planning each phase |
-| `workflow.plan_check` | boolean | `true` | Plan verification loop (up to 3 iterations) |
-| `workflow.verifier` | boolean | `true` | Post-execution verification against phase goals |
-| `workflow.auto_advance` | boolean | `false` | Auto-chain discuss → plan → execute without stopping |
-| `workflow.nyquist_validation` | boolean | `true` | Test coverage mapping during plan-phase research |
-| `workflow.ui_phase` | boolean | `true` | Generate UI design contracts for frontend phases |
-| `workflow.ui_safety_gate` | boolean | `true` | Prompt to run /gsd-ui-phase for frontend phases during plan-phase |
-| `workflow.ui_review` | boolean | `true` | Run visual quality audit (`/gsd-ui-review`) after phase execution in autonomous mode. When `false`, the UI audit step is skipped. |
-| `workflow.node_repair` | boolean | `true` | Autonomous task repair on verification failure |
-| `workflow.node_repair_budget` | number | `2` | Max repair attempts per failed task |
-| `workflow.research_before_questions` | boolean | `false` | Run research before discussion questions instead of after |
-| `workflow.discuss_mode` | string | `'discuss'` | Controls how `/gsd-discuss-phase` gathers context. `'discuss'` (default) asks questions one-by-one. `'assumptions'` reads the codebase first, generates structured assumptions with confidence levels, and only asks you to correct what's wrong. Added in v1.28 |
-| `workflow.max_discuss_passes` | number | `3` | Maximum number of question rounds in discuss-phase before the workflow stops asking. Useful in headless/auto mode to prevent infinite discussion loops. |
-| `workflow.skip_discuss` | boolean | `false` | When `true`, `/gsd-autonomous` bypasses the discuss-phase entirely, writing minimal CONTEXT.md from the ROADMAP phase goal. Useful for projects where developer preferences are fully captured in PROJECT.md/REQUIREMENTS.md. Added in v1.28 |
-| `workflow.text_mode` | boolean | `false` | Replaces AskUserQuestion TUI menus with plain-text numbered lists. Required for Claude Code remote sessions (`/rc` mode) where TUI menus don't render. Can also be set per-session with `--text` flag on discuss-phase. Added in v1.28 |
-| `workflow.use_worktrees` | boolean | `true` | When `false`, disables git worktree isolation for parallel execution. Users who prefer sequential execution or whose environment does not support worktrees can disable this. Added in v1.31 |
-| `workflow.code_review` | boolean | `true` | Enable `/gsd-code-review` and `/gsd-code-review-fix` commands. When `false`, the commands exit with a configuration gate message. Added in v1.34 |
-| `workflow.code_review_depth` | string | `standard` | Default review depth for `/gsd-code-review`: `quick` (pattern-matching only), `standard` (per-file analysis), or `deep` (cross-file with import graphs). Can be overridden per-run with `--depth=`. Added in v1.34 |
-| `workflow.plan_bounce` | boolean | `false` | Run external validation script against generated plans. When enabled, the plan-phase orchestrator pipes each PLAN.md through the script specified by `plan_bounce_script` and blocks on non-zero exit. Added in v1.36 |
-| `workflow.plan_bounce_script` | string | (none) | Path to the external script invoked for plan bounce validation. Receives the PLAN.md path as its first argument. Required when `plan_bounce` is `true`. Added in v1.36 |
-| `workflow.plan_bounce_passes` | number | `2` | Number of sequential bounce passes to run. Each pass feeds the previous pass's output back into the validator. Higher values increase rigor at the cost of latency. Added in v1.36 |
-| `workflow.post_planning_gaps` | boolean | `true` | Unified post-planning gap report (#2493). After all plans are generated and committed, scans REQUIREMENTS.md and CONTEXT.md `<decisions>` against every PLAN.md in the phase directory, then prints one `Source \| Item \| Status` table. Word-boundary matching (REQ-1 vs REQ-10) and natural sort (REQ-02 before REQ-10). Non-blocking — informational report only. Set to `false` to skip Step 13e of plan-phase. |
-| `workflow.plan_review_convergence` | boolean | `false` | Enable the `/gsd-plan-review-convergence` command. Disabled by default — the command exits with an enable instruction when this key is `false`. The command automates the manual plan→review→replan loop: it spawns configured reviewers (Codex, Gemini, Claude, OpenCode, Ollama, LM Studio, llama.cpp), counts unresolved HIGH concerns via the CYCLE_SUMMARY contract, replans with `--reviews` feedback, and repeats until converged or max cycles reached. Enable with `gsd config-set workflow.plan_review_convergence true`. Added in v1.39 |
-| `workflow.plan_chunked` | boolean | `false` | Enable chunked planning mode. When `true` (or when `--chunked` flag is passed to `/gsd-plan-phase`), the orchestrator splits the single long-lived planner Task into a short outline Task followed by N short per-plan Tasks (~3-5 min each). Each plan is committed individually for crash resilience. If a Task hangs and the terminal is force-killed, rerunning with `--chunked` resumes from the last completed plan. Particularly useful on Windows where long-lived Tasks may hang on stdio. Added in v1.38 |
-| `workflow.code_review_command` | string | (none) | Shell command for external code review integration in `/gsd-ship`. Receives changed file paths via stdin. Non-zero exit blocks the ship workflow. Added in v1.36 |
-| `workflow.tdd_mode` | boolean | `false` | Enable TDD pipeline as a first-class execution mode. When `true`, the planner aggressively applies `type: tdd` to eligible tasks (business logic, APIs, validations, algorithms) and the executor enforces RED/GREEN/REFACTOR gate sequence. An end-of-phase collaborative review checkpoint verifies gate compliance. Added in v1.36 |
-| `workflow.cross_ai_execution` | boolean | `false` | Delegate phase execution to an external AI CLI instead of spawning local executor agents. Useful for leveraging a different model's strengths for specific phases. Added in v1.36 |
-| `workflow.cross_ai_command` | string | (none) | Shell command template for cross-AI execution. Receives the phase prompt via stdin. Must produce SUMMARY.md-compatible output. Required when `cross_ai_execution` is `true`. Added in v1.36 |
-| `workflow.cross_ai_timeout` | number | `300` | Timeout in seconds for cross-AI execution commands. Prevents runaway external processes. Added in v1.36 |
-| `workflow.ai_integration_phase` | boolean | `true` | Enable the `/gsd-ai-integration-phase` command. When `false`, the command exits with a configuration gate message |
-| `workflow.auto_prune_state` | boolean | `false` | When `true`, automatically prune stale entries from STATE.md at phase boundaries instead of prompting |
-| `workflow.pattern_mapper` | boolean | `true` | Run the `gsd-pattern-mapper` agent between research and planning to map new files to existing codebase analogs |
-| `workflow.subagent_timeout` | number | `600` | Timeout in seconds for individual subagent invocations. Increase for long-running research or execution phases |
-| `workflow.inline_plan_threshold` | number | `3` | Maximum number of tasks in a phase before the planner generates a separate PLAN.md file instead of inlining tasks in the prompt |
-| `workflow.drift_threshold` | number | `3` | Minimum number of new structural elements (new directories, barrel exports, migrations, route modules) introduced during a phase before the post-execute codebase-drift gate takes action. See [#2003](https://github.com/gsd-build/get-shit-done/issues/2003). Added in v1.39 |
-| `workflow.drift_action` | string | `warn` | What to do when `workflow.drift_threshold` is exceeded after `/gsd-execute-phase`. `warn` prints a message suggesting `/gsd-map-codebase --paths …`; `auto-remap` spawns `gsd-codebase-mapper` scoped to the affected paths. Added in v1.39 |
-| `workflow.build_command` | string | (none) | Shell command to build the project in the post-merge build gate (Step A of step 5.6 in execute-phase). When unset, the gate auto-detects: Xcode (`.xcodeproj` present) → `xcodebuild build`, `Makefile` with `build:` target → `make build`, Justfile → `just build`, `Cargo.toml` → `cargo build`, `go.mod` → `go build ./...`, Python → `python -m py_compile`, `package.json` with `build` script → `npm run build`. Runs with a 5-minute timeout; failure increments `WAVE_FAILURE_COUNT`. Added in v1.39 |
-| `workflow.test_command` | string | (none) | Shell command to run the project's test suite in the post-merge test gate (Step B of step 5.6 in execute-phase) and the regression gate. When unset, the gate auto-detects: Xcode (`.xcodeproj` present) → `xcodebuild test`, `Makefile` with `test:` target → `make test`, Justfile → `just test`, `package.json` → `npm test`, `Cargo.toml` → `cargo test`, `go.mod` → `go test ./...`, Python → `python -m pytest`. Runs with a 5-minute timeout; failure increments `WAVE_FAILURE_COUNT`. Added in v1.39 |
+| Setting                              | Type    | Default     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------ | ------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `workflow.research`                  | boolean | `true`      | Domain investigation before planning each phase                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `workflow.plan_check`                | boolean | `true`      | Plan verification loop (up to 3 iterations)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `workflow.verifier`                  | boolean | `true`      | Post-execution verification against phase goals                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `workflow.auto_advance`              | boolean | `false`     | Auto-chain discuss → plan → execute without stopping                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `workflow.nyquist_validation`        | boolean | `true`      | Test coverage mapping during plan-phase research                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `workflow.ui_phase`                  | boolean | `true`      | Generate UI design contracts for frontend phases                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `workflow.ui_safety_gate`            | boolean | `true`      | Prompt to run /gsd-ui-phase for frontend phases during plan-phase                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `workflow.ui_review`                 | boolean | `true`      | Run visual quality audit (`/gsd-ui-review`) after phase execution in autonomous mode. When `false`, the UI audit step is skipped.                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `workflow.node_repair`               | boolean | `true`      | Autonomous task repair on verification failure                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `workflow.node_repair_budget`        | number  | `2`         | Max repair attempts per failed task                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `workflow.research_before_questions` | boolean | `false`     | Run research before discussion questions instead of after                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `workflow.discuss_mode`              | string  | `'discuss'` | Controls how `/gsd-discuss-phase` gathers context. `'discuss'` (default) asks questions one-by-one. `'assumptions'` reads the codebase first, generates structured assumptions with confidence levels, and only asks you to correct what's wrong. Added in v1.28                                                                                                                                                                                                                                                                                   |
+| `workflow.max_discuss_passes`        | number  | `3`         | Maximum number of question rounds in discuss-phase before the workflow stops asking. Useful in headless/auto mode to prevent infinite discussion loops.                                                                                                                                                                                                                                                                                                                                                                                            |
+| `workflow.skip_discuss`              | boolean | `false`     | When `true`, `/gsd-autonomous` bypasses the discuss-phase entirely, writing minimal CONTEXT.md from the ROADMAP phase goal. Useful for projects where developer preferences are fully captured in PROJECT.md/REQUIREMENTS.md. Added in v1.28                                                                                                                                                                                                                                                                                                       |
+| `workflow.text_mode`                 | boolean | `false`     | Replaces AskUserQuestion TUI menus with plain-text numbered lists. Required for Claude Code remote sessions (`/rc` mode) where TUI menus don't render. Can also be set per-session with `--text` flag on discuss-phase. Added in v1.28                                                                                                                                                                                                                                                                                                             |
+| `workflow.use_worktrees`             | boolean | `true`      | When `false`, disables git worktree isolation for parallel execution. Users who prefer sequential execution or whose environment does not support worktrees can disable this. Added in v1.31                                                                                                                                                                                                                                                                                                                                                       |
+| `workflow.code_review`               | boolean | `true`      | Enable `/gsd-code-review` and `/gsd-code-review-fix` commands. When `false`, the commands exit with a configuration gate message. Added in v1.34                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `workflow.code_review_depth`         | string  | `standard`  | Default review depth for `/gsd-code-review`: `quick` (pattern-matching only), `standard` (per-file analysis), or `deep` (cross-file with import graphs). Can be overridden per-run with `--depth=`. Added in v1.34                                                                                                                                                                                                                                                                                                                                 |
+| `workflow.plan_bounce`               | boolean | `false`     | Run external validation script against generated plans. When enabled, the plan-phase orchestrator pipes each PLAN.md through the script specified by `plan_bounce_script` and blocks on non-zero exit. Added in v1.36                                                                                                                                                                                                                                                                                                                              |
+| `workflow.plan_bounce_script`        | string  | (none)      | Path to the external script invoked for plan bounce validation. Receives the PLAN.md path as its first argument. Required when `plan_bounce` is `true`. Added in v1.36                                                                                                                                                                                                                                                                                                                                                                             |
+| `workflow.plan_bounce_passes`        | number  | `2`         | Number of sequential bounce passes to run. Each pass feeds the previous pass's output back into the validator. Higher values increase rigor at the cost of latency. Added in v1.36                                                                                                                                                                                                                                                                                                                                                                 |
+| `workflow.post_planning_gaps`        | boolean | `true`      | Unified post-planning gap report (#2493). After all plans are generated and committed, scans REQUIREMENTS.md and CONTEXT.md `<decisions>` against every PLAN.md in the phase directory, then prints one `Source \| Item \| Status` table. Word-boundary matching (REQ-1 vs REQ-10) and natural sort (REQ-02 before REQ-10). Non-blocking — informational report only. Set to `false` to skip Step 13e of plan-phase.                                                                                                                               |
+| `workflow.plan_review_convergence`   | boolean | `false`     | Enable the `/gsd-plan-review-convergence` command. Disabled by default — the command exits with an enable instruction when this key is `false`. The command automates the manual plan→review→replan loop: it spawns configured reviewers (Codex, Gemini, Claude, OpenCode, Ollama, LM Studio, llama.cpp), counts unresolved HIGH concerns via the CYCLE_SUMMARY contract, replans with `--reviews` feedback, and repeats until converged or max cycles reached. Enable with `gsd config-set workflow.plan_review_convergence true`. Added in v1.39 |
+| `workflow.plan_chunked`              | boolean | `false`     | Enable chunked planning mode. When `true` (or when `--chunked` flag is passed to `/gsd-plan-phase`), the orchestrator splits the single long-lived planner Task into a short outline Task followed by N short per-plan Tasks (~3-5 min each). Each plan is committed individually for crash resilience. If a Task hangs and the terminal is force-killed, rerunning with `--chunked` resumes from the last completed plan. Particularly useful on Windows where long-lived Tasks may hang on stdio. Added in v1.38                                 |
+| `workflow.code_review_command`       | string  | (none)      | Shell command for external code review integration in `/gsd-ship`. Receives changed file paths via stdin. Non-zero exit blocks the ship workflow. Added in v1.36                                                                                                                                                                                                                                                                                                                                                                                   |
+| `workflow.tdd_mode`                  | boolean | `false`     | Enable TDD pipeline as a first-class execution mode. When `true`, the planner aggressively applies `type: tdd` to eligible tasks (business logic, APIs, validations, algorithms) and the executor enforces RED/GREEN/REFACTOR gate sequence. An end-of-phase collaborative review checkpoint verifies gate compliance. Added in v1.36                                                                                                                                                                                                              |
+| `workflow.cross_ai_execution`        | boolean | `false`     | Delegate phase execution to an external AI CLI instead of spawning local executor agents. Useful for leveraging a different model's strengths for specific phases. Added in v1.36                                                                                                                                                                                                                                                                                                                                                                  |
+| `workflow.cross_ai_command`          | string  | (none)      | Shell command template for cross-AI execution. Receives the phase prompt via stdin. Must produce SUMMARY.md-compatible output. Required when `cross_ai_execution` is `true`. Added in v1.36                                                                                                                                                                                                                                                                                                                                                        |
+| `workflow.cross_ai_timeout`          | number  | `300`       | Timeout in seconds for cross-AI execution commands. Prevents runaway external processes. Added in v1.36                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `workflow.ai_integration_phase`      | boolean | `true`      | Enable the `/gsd-ai-integration-phase` command. When `false`, the command exits with a configuration gate message                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `workflow.auto_prune_state`          | boolean | `false`     | When `true`, automatically prune stale entries from STATE.md at phase boundaries instead of prompting                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `workflow.pattern_mapper`            | boolean | `true`      | Run the `gsd-pattern-mapper` agent between research and planning to map new files to existing codebase analogs                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `workflow.subagent_timeout`          | number  | `600`       | Timeout in seconds for individual subagent invocations. Increase for long-running research or execution phases                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `workflow.inline_plan_threshold`     | number  | `3`         | Maximum number of tasks in a phase before the planner generates a separate PLAN.md file instead of inlining tasks in the prompt                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `workflow.drift_threshold`           | number  | `3`         | Minimum number of new structural elements (new directories, barrel exports, migrations, route modules) introduced during a phase before the post-execute codebase-drift gate takes action. See [#2003](https://github.com/gsd-build/get-shit-done/issues/2003). Added in v1.39                                                                                                                                                                                                                                                                     |
+| `workflow.drift_action`              | string  | `warn`      | What to do when `workflow.drift_threshold` is exceeded after `/gsd-execute-phase`. `warn` prints a message suggesting `/gsd-map-codebase --paths …`; `auto-remap` spawns `gsd-codebase-mapper` scoped to the affected paths. Added in v1.39                                                                                                                                                                                                                                                                                                        |
+| `workflow.build_command`             | string  | (none)      | Shell command to build the project in the post-merge build gate (Step A of step 5.6 in execute-phase). When unset, the gate auto-detects: Xcode (`.xcodeproj` present) → `xcodebuild build`, `Makefile` with `build:` target → `make build`, Justfile → `just build`, `Cargo.toml` → `cargo build`, `go.mod` → `go build ./...`, Python → `python -m py_compile`, `package.json` with `build` script → `npm run build`. Runs with a 5-minute timeout; failure increments `WAVE_FAILURE_COUNT`. Added in v1.39                                      |
+| `workflow.test_command`              | string  | (none)      | Shell command to run the project's test suite in the post-merge test gate (Step B of step 5.6 in execute-phase) and the regression gate. When unset, the gate auto-detects: Xcode (`.xcodeproj` present) → `xcodebuild test`, `Makefile` with `test:` target → `make test`, Justfile → `just test`, `package.json` → `npm test`, `Cargo.toml` → `cargo test`, `go.mod` → `go test ./...`, Python → `python -m pytest`. Runs with a 5-minute timeout; failure increments `WAVE_FAILURE_COUNT`. Added in v1.39                                       |
+| `workflow.completion_gate`           | boolean | `true`      | Enable the end-of-command completion gate. When enabled (default), after each main command completes successfully, the workflow asks what to do next — run the next phase, execute next plan, verify work, start new milestone, or end session. Absent = enabled. Added in v1.39                                                                                                                                                                                                                                                                   |
 
 ### Recommended Presets
 
-| Scenario | mode | granularity | profile | research | plan_check | verifier |
-|----------|------|-------------|---------|----------|------------|----------|
-| Prototyping | `yolo` | `coarse` | `budget` | `false` | `false` | `false` |
-| Normal development | `interactive` | `standard` | `balanced` | `true` | `true` | `true` |
-| Production release | `interactive` | `fine` | `quality` | `true` | `true` | `true` |
+| Scenario           | mode          | granularity | profile    | research | plan_check | verifier |
+| ------------------ | ------------- | ----------- | ---------- | -------- | ---------- | -------- |
+| Prototyping        | `yolo`        | `coarse`    | `budget`   | `false`  | `false`    | `false`  |
+| Normal development | `interactive` | `standard`  | `balanced` | `true`   | `true`     | `true`   |
+| Production release | `interactive` | `fine`      | `quality`  | `true`   | `true`     | `true`   |
 
 ---
 
 ## Planning Settings
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `planning.commit_docs` | boolean | `true` | Whether `.planning/` files are committed to git |
-| `planning.search_gitignored` | boolean | `false` | Add `--no-ignore` to broad searches to include `.planning/` |
-| `planning.sub_repos` | array of strings | `[]` | Paths of nested sub-repos relative to the project root. When set, GSD-aware tooling scopes phase-lookup, path-resolution, and commit operations per sub-repo instead of treating the outer repo as a monorepo |
+| Setting                      | Type             | Default | Description                                                                                                                                                                                                   |
+| ---------------------------- | ---------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `planning.commit_docs`       | boolean          | `true`  | Whether `.planning/` files are committed to git                                                                                                                                                               |
+| `planning.search_gitignored` | boolean          | `false` | Add `--no-ignore` to broad searches to include `.planning/`                                                                                                                                                   |
+| `planning.sub_repos`         | array of strings | `[]`    | Paths of nested sub-repos relative to the project root. When set, GSD-aware tooling scopes phase-lookup, path-resolution, and commit operations per sub-repo instead of treating the outer repo as a monorepo |
 
 ### Project-Root Resolution in Multi-Repo Workspaces
 
@@ -251,10 +253,10 @@ If `.planning/` is in `.gitignore`, `commit_docs` is automatically `false` regar
 
 ## Hook Settings
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `hooks.context_warnings` | boolean | `true` | Show context window usage warnings via context monitor hook |
-| `hooks.workflow_guard` | boolean | `false` | Warn when file edits happen outside GSD workflow context (advises using `/gsd-quick` or `/gsd-fast`) |
+| Setting                        | Type    | Default | Description                                                                                                                                                                                           |
+| ------------------------------ | ------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `hooks.context_warnings`       | boolean | `true`  | Show context window usage warnings via context monitor hook                                                                                                                                           |
+| `hooks.workflow_guard`         | boolean | `false` | Warn when file edits happen outside GSD workflow context (advises using `/gsd-quick` or `/gsd-fast`)                                                                                                  |
 | `statusline.show_last_command` | boolean | `false` | Append `last: /<cmd>` suffix to the statusline showing the most recently invoked slash command. Opt-in; reads the active session transcript to extract the latest `<command-name>` tag (closes #2538) |
 
 The prompt injection guard hook (`gsd-prompt-guard.js`) is always active and cannot be disabled — it's a security feature, not a workflow toggle.
@@ -273,9 +275,9 @@ To keep planning artifacts out of git:
 
 Inject custom skill files into GSD subagent prompts. Skills are read by agents at spawn time, giving them project-specific instructions beyond what CLAUDE.md provides.
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `agent_skills` | object | `{}` | Map of agent types to skill directory paths |
+| Setting        | Type   | Default | Description                                 |
+| -------------- | ------ | ------- | ------------------------------------------- |
+| `agent_skills` | object | `{}`    | Map of agent types to skill directory paths |
 
 ### Configuration
 
@@ -339,20 +341,21 @@ gsd-sdk query config-set agent_skills.gsd-executor '["skills/my-skill"]'
 
 Toggle optional capabilities via the `features.*` config namespace. Feature flags default to `false` (disabled) — enabling a flag opts into new behavior without affecting existing workflows.
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `features.thinking_partner` | boolean | `false` | Enable thinking partner analysis at workflow decision points |
-| `features.global_learnings` | boolean | `false` | Enable cross-project learnings pipeline (auto-copy at phase completion, planner injection) |
-| `learnings.max_inject` | number | `10` | Maximum number of cross-project learnings injected into each planner prompt. Lower values reduce prompt size; higher values provide broader historical context |
-| `intel.enabled` | boolean | `false` | Enable queryable codebase intelligence system. When `true`, `/gsd-intel` commands build and query a JSON index in `.planning/intel/`. Added in v1.34 |
+| Setting                     | Type    | Default | Description                                                                                                                                                    |
+| --------------------------- | ------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `features.thinking_partner` | boolean | `false` | Enable thinking partner analysis at workflow decision points                                                                                                   |
+| `features.global_learnings` | boolean | `false` | Enable cross-project learnings pipeline (auto-copy at phase completion, planner injection)                                                                     |
+| `learnings.max_inject`      | number  | `10`    | Maximum number of cross-project learnings injected into each planner prompt. Lower values reduce prompt size; higher values provide broader historical context |
+| `intel.enabled`             | boolean | `false` | Enable queryable codebase intelligence system. When `true`, `/gsd-intel` commands build and query a JSON index in `.planning/intel/`. Added in v1.34           |
 
 <a id="graphify-settings"></a>
+
 ### Graphify Settings
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `graphify.enabled` | boolean | `false` | Enable the project knowledge graph. When `true`, `/gsd-graphify` builds and queries a graph in `.planning/graphs/`. Added in v1.36 |
-| `graphify.build_timeout` | number (seconds) | `300` | Maximum seconds allowed for a `/gsd-graphify build` run before it aborts. Added in v1.36 |
+| Setting                  | Type             | Default | Description                                                                                                                        |
+| ------------------------ | ---------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `graphify.enabled`       | boolean          | `false` | Enable the project knowledge graph. When `true`, `/gsd-graphify` builds and queries a graph in `.planning/graphs/`. Added in v1.36 |
+| `graphify.build_timeout` | number (seconds) | `300`   | Maximum seconds allowed for a `/gsd-graphify build` run before it aborts. Added in v1.36                                           |
 
 ### Usage
 
@@ -370,15 +373,15 @@ The `features.*` namespace is a dynamic key pattern — new feature flags can be
 
 ## Parallelization Settings
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `parallelization` | boolean | `true` | Shorthand for `parallelization.enabled`. Setting `parallelization false` disables parallel execution without changing other sub-keys |
-| `parallelization.enabled` | boolean | `true` | Run independent plans simultaneously |
-| `parallelization.plan_level` | boolean | `true` | Parallelize at plan level |
-| `parallelization.task_level` | boolean | `false` | Parallelize tasks within a plan |
-| `parallelization.skip_checkpoints` | boolean | `true` | Skip checkpoints during parallel execution |
-| `parallelization.max_concurrent_agents` | number | `3` | Maximum simultaneous agents |
-| `parallelization.min_plans_for_parallel` | number | `2` | Minimum plans to trigger parallel execution |
+| Setting                                  | Type    | Default | Description                                                                                                                          |
+| ---------------------------------------- | ------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `parallelization`                        | boolean | `true`  | Shorthand for `parallelization.enabled`. Setting `parallelization false` disables parallel execution without changing other sub-keys |
+| `parallelization.enabled`                | boolean | `true`  | Run independent plans simultaneously                                                                                                 |
+| `parallelization.plan_level`             | boolean | `true`  | Parallelize at plan level                                                                                                            |
+| `parallelization.task_level`             | boolean | `false` | Parallelize tasks within a plan                                                                                                      |
+| `parallelization.skip_checkpoints`       | boolean | `true`  | Skip checkpoints during parallel execution                                                                                           |
+| `parallelization.max_concurrent_agents`  | number  | `3`     | Maximum simultaneous agents                                                                                                          |
+| `parallelization.min_plans_for_parallel` | number  | `2`     | Minimum plans to trigger parallel execution                                                                                          |
 
 > **Pre-commit hooks and parallel execution**: When parallelization is enabled, executor agents commit with `--no-verify` to avoid build lock contention (e.g., cargo lock fights in Rust projects). The orchestrator validates hooks once after each wave completes. STATE.md writes are protected by file-level locking to prevent concurrent write corruption. If you need hooks to run per-commit, set `parallelization.enabled: false`.
 
@@ -386,30 +389,30 @@ The `features.*` namespace is a dynamic key pattern — new feature flags can be
 
 ## Git Branching
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `git.branching_strategy` | enum | `none` | `none`, `phase`, or `milestone` |
-| `git.base_branch` | string | `main` | The integration branch that phase/milestone branches are created from and merged back into. Override when your repo uses `master` or a release branch |
-| `git.phase_branch_template` | string | `gsd/phase-{phase}-{slug}` | Branch name template for phase strategy |
-| `git.milestone_branch_template` | string | `gsd/{milestone}-{slug}` | Branch name template for milestone strategy |
-| `git.quick_branch_template` | string or null | `null` | Optional branch name template for `/gsd-quick` tasks |
+| Setting                         | Type           | Default                    | Description                                                                                                                                           |
+| ------------------------------- | -------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `git.branching_strategy`        | enum           | `none`                     | `none`, `phase`, or `milestone`                                                                                                                       |
+| `git.base_branch`               | string         | `main`                     | The integration branch that phase/milestone branches are created from and merged back into. Override when your repo uses `master` or a release branch |
+| `git.phase_branch_template`     | string         | `gsd/phase-{phase}-{slug}` | Branch name template for phase strategy                                                                                                               |
+| `git.milestone_branch_template` | string         | `gsd/{milestone}-{slug}`   | Branch name template for milestone strategy                                                                                                           |
+| `git.quick_branch_template`     | string or null | `null`                     | Optional branch name template for `/gsd-quick` tasks                                                                                                  |
 
 ### Strategy Comparison
 
-| Strategy | Creates Branch | Scope | Merge Point | Best For |
-|----------|---------------|-------|-------------|----------|
-| `none` | Never | N/A | N/A | Solo development, simple projects |
-| `phase` | At `execute-phase` start | One phase | User merges after phase | Code review per phase, granular rollback |
-| `milestone` | At first `execute-phase` | All phases in milestone | At `complete-milestone` | Release branches, PR per version |
+| Strategy    | Creates Branch           | Scope                   | Merge Point             | Best For                                 |
+| ----------- | ------------------------ | ----------------------- | ----------------------- | ---------------------------------------- |
+| `none`      | Never                    | N/A                     | N/A                     | Solo development, simple projects        |
+| `phase`     | At `execute-phase` start | One phase               | User merges after phase | Code review per phase, granular rollback |
+| `milestone` | At first `execute-phase` | All phases in milestone | At `complete-milestone` | Release branches, PR per version         |
 
 ### Template Variables
 
-| Variable | Available In | Example |
-|----------|-------------|---------|
-| `{phase}` | `phase_branch_template` | `03` (zero-padded) |
-| `{slug}` | Both templates | `user-authentication` (lowercase, hyphenated) |
-| `{milestone}` | `milestone_branch_template` | `v1.0` |
-| `{num}` / `{quick}` | `quick_branch_template` | `260317-abc` (quick task ID) |
+| Variable            | Available In                | Example                                       |
+| ------------------- | --------------------------- | --------------------------------------------- |
+| `{phase}`           | `phase_branch_template`     | `03` (zero-padded)                            |
+| `{slug}`            | Both templates              | `user-authentication` (lowercase, hyphenated) |
+| `{milestone}`       | `milestone_branch_template` | `v1.0`                                        |
+| `{num}` / `{quick}` | `quick_branch_template`     | `260317-abc` (quick task ID)                  |
 
 Example quick-task branching:
 
@@ -421,12 +424,12 @@ Example quick-task branching:
 
 ### Merge Options at Milestone Completion
 
-| Option | Git Command | Result |
-|--------|-------------|--------|
-| Squash merge (recommended) | `git merge --squash` | Single clean commit per branch |
-| Merge with history | `git merge --no-ff` | Preserves all individual commits |
-| Delete without merging | `git branch -D` | Discard branch work |
-| Keep branches | (none) | Manual handling later |
+| Option                     | Git Command          | Result                           |
+| -------------------------- | -------------------- | -------------------------------- |
+| Squash merge (recommended) | `git merge --squash` | Single clean commit per branch   |
+| Merge with history         | `git merge --no-ff`  | Preserves all individual commits |
+| Delete without merging     | `git branch -D`      | Discard branch work              |
+| Keep branches              | (none)               | Manual handling later            |
 
 ---
 
@@ -434,25 +437,25 @@ Example quick-task branching:
 
 Control confirmation prompts during workflows.
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `gates.confirm_project` | boolean | `true` | Confirm project details before finalizing |
-| `gates.confirm_phases` | boolean | `true` | Confirm phase breakdown |
-| `gates.confirm_roadmap` | boolean | `true` | Confirm roadmap before proceeding |
-| `gates.confirm_breakdown` | boolean | `true` | Confirm task breakdown |
-| `gates.confirm_plan` | boolean | `true` | Confirm each plan before execution |
-| `gates.execute_next_plan` | boolean | `true` | Confirm before executing next plan |
-| `gates.issues_review` | boolean | `true` | Review issues before creating fix plans |
-| `gates.confirm_transition` | boolean | `true` | Confirm phase transition |
+| Setting                    | Type    | Default | Description                               |
+| -------------------------- | ------- | ------- | ----------------------------------------- |
+| `gates.confirm_project`    | boolean | `true`  | Confirm project details before finalizing |
+| `gates.confirm_phases`     | boolean | `true`  | Confirm phase breakdown                   |
+| `gates.confirm_roadmap`    | boolean | `true`  | Confirm roadmap before proceeding         |
+| `gates.confirm_breakdown`  | boolean | `true`  | Confirm task breakdown                    |
+| `gates.confirm_plan`       | boolean | `true`  | Confirm each plan before execution        |
+| `gates.execute_next_plan`  | boolean | `true`  | Confirm before executing next plan        |
+| `gates.issues_review`      | boolean | `true`  | Review issues before creating fix plans   |
+| `gates.confirm_transition` | boolean | `true`  | Confirm phase transition                  |
 
 ---
 
 ## Safety Settings
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `safety.always_confirm_destructive` | boolean | `true` | Confirm destructive operations (deletes, overwrites) |
-| `safety.always_confirm_external_services` | boolean | `true` | Confirm external service interactions |
+| Setting                                   | Type    | Default | Description                                          |
+| ----------------------------------------- | ------- | ------- | ---------------------------------------------------- |
+| `safety.always_confirm_destructive`       | boolean | `true`  | Confirm destructive operations (deletes, overwrites) |
+| `safety.always_confirm_external_services` | boolean | `true`  | Confirm external service interactions                |
 
 ---
 
@@ -462,11 +465,11 @@ Settings for the security enforcement feature (v1.31). All follow the **absent =
 
 These keys live under `workflow.*` — that is where the workflows and installer write and read them. Setting them at the top level of `config.json` is silently ignored.
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `workflow.security_enforcement` | boolean | `true` | Enable threat-model-anchored security verification via `/gsd-secure-phase`. When `false`, security checks are skipped entirely |
-| `workflow.security_asvs_level` | number (1-3) | `1` | OWASP ASVS verification level. Level 1 = opportunistic, Level 2 = standard, Level 3 = comprehensive |
-| `workflow.security_block_on` | string | `"high"` | Minimum severity that blocks phase advancement. Options: `"high"`, `"medium"`, `"low"` |
+| Setting                         | Type         | Default  | Description                                                                                                                    |
+| ------------------------------- | ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `workflow.security_enforcement` | boolean      | `true`   | Enable threat-model-anchored security verification via `/gsd-secure-phase`. When `false`, security checks are skipped entirely |
+| `workflow.security_asvs_level`  | number (1-3) | `1`      | OWASP ASVS verification level. Level 1 = opportunistic, Level 2 = standard, Level 3 = comprehensive                            |
+| `workflow.security_block_on`    | string       | `"high"` | Minimum severity that blocks phase advancement. Options: `"high"`, `"medium"`, `"low"`                                         |
 
 ---
 
@@ -476,9 +479,9 @@ When `discuss-phase` writes implementation decisions into CONTEXT.md
 `<decisions>`, two gates ensure those decisions survive the trip into
 plans and shipped code (issue #2492).
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `workflow.context_coverage_gate` | boolean | `true` | Toggle for both decision-coverage gates. When `false`, both the plan-phase translation gate and the verify-phase validation gate skip silently. |
+| Setting                          | Type    | Default | Description                                                                                                                                     |
+| -------------------------------- | ------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `workflow.context_coverage_gate` | boolean | `true`  | Toggle for both decision-coverage gates. When `false`, both the plan-phase translation gate and the verify-phase validation gate skip silently. |
 
 ### What the gates do
 
@@ -516,7 +519,7 @@ apply:
 - It lives under the `### Claude's Discretion` heading inside `<decisions>`.
 - It is tagged `[informational]`, `[folded]`, or `[deferred]` in its
   bullet (e.g., `- **D-08 [informational]:** Naming style for internal
-  helpers`).
+helpers`).
 
 Use these escape hatches when a decision genuinely doesn't need plan
 coverage — implementation discretion, future ideas captured for the
@@ -528,20 +531,20 @@ record, or items already deferred to a later phase.
 
 Configure per-CLI model selection for `/gsd-review`. When set, overrides the CLI's default model for that reviewer.
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `review.models.gemini` | string | (CLI default) | Model used when `--gemini` reviewer is invoked |
-| `review.models.claude` | string | (CLI default) | Model used when `--claude` reviewer is invoked |
-| `review.models.codex` | string | (CLI default) | Model used when `--codex` reviewer is invoked |
-| `review.models.opencode` | string | (CLI default) | Model used when `--opencode` reviewer is invoked |
-| `review.models.qwen` | string | (CLI default) | Model used when `--qwen` reviewer is invoked |
-| `review.models.cursor` | string | (CLI default) | Model used when `--cursor` reviewer is invoked |
-| `review.models.ollama` | string | (server default) | Model name passed to Ollama when `--ollama` reviewer is invoked. If unset, the first available model reported by the server is used (e.g. `llama3`). Set to a specific tag: `gsd config-set review.models.ollama codellama` |
-| `review.models.lm_studio` | string | (server default) | Model name passed to LM Studio when `--lm-studio` reviewer is invoked. If unset, the first available model reported by the server is used. |
-| `review.models.llama_cpp` | string | (server default) | Model name passed to llama.cpp when `--llama-cpp` reviewer is invoked. If unset, the first model reported by `/v1/models` is used. |
-| `review.ollama_host` | string | `http://localhost:11434` | Base URL of the Ollama server. Override when running Ollama on a non-default port or remote host: `gsd config-set review.ollama_host http://192.168.1.10:11434` |
-| `review.lm_studio_host` | string | `http://localhost:1234` | Base URL of the LM Studio local server. Override when using a non-default port. |
-| `review.llama_cpp_host` | string | `http://localhost:8080` | Base URL of the llama.cpp server (`llama-server`). Override when using a non-default port. |
+| Setting                   | Type   | Default                  | Description                                                                                                                                                                                                                 |
+| ------------------------- | ------ | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `review.models.gemini`    | string | (CLI default)            | Model used when `--gemini` reviewer is invoked                                                                                                                                                                              |
+| `review.models.claude`    | string | (CLI default)            | Model used when `--claude` reviewer is invoked                                                                                                                                                                              |
+| `review.models.codex`     | string | (CLI default)            | Model used when `--codex` reviewer is invoked                                                                                                                                                                               |
+| `review.models.opencode`  | string | (CLI default)            | Model used when `--opencode` reviewer is invoked                                                                                                                                                                            |
+| `review.models.qwen`      | string | (CLI default)            | Model used when `--qwen` reviewer is invoked                                                                                                                                                                                |
+| `review.models.cursor`    | string | (CLI default)            | Model used when `--cursor` reviewer is invoked                                                                                                                                                                              |
+| `review.models.ollama`    | string | (server default)         | Model name passed to Ollama when `--ollama` reviewer is invoked. If unset, the first available model reported by the server is used (e.g. `llama3`). Set to a specific tag: `gsd config-set review.models.ollama codellama` |
+| `review.models.lm_studio` | string | (server default)         | Model name passed to LM Studio when `--lm-studio` reviewer is invoked. If unset, the first available model reported by the server is used.                                                                                  |
+| `review.models.llama_cpp` | string | (server default)         | Model name passed to llama.cpp when `--llama-cpp` reviewer is invoked. If unset, the first model reported by `/v1/models` is used.                                                                                          |
+| `review.ollama_host`      | string | `http://localhost:11434` | Base URL of the Ollama server. Override when running Ollama on a non-default port or remote host: `gsd config-set review.ollama_host http://192.168.1.10:11434`                                                             |
+| `review.lm_studio_host`   | string | `http://localhost:1234`  | Base URL of the LM Studio local server. Override when using a non-default port.                                                                                                                                             |
+| `review.llama_cpp_host`   | string | `http://localhost:8080`  | Base URL of the llama.cpp server (`llama-server`). Override when using a non-default port.                                                                                                                                  |
 
 ### Example
 
@@ -564,11 +567,11 @@ Falls back to each CLI's configured default when a key is absent. Added in v1.35
 
 Configure per-step flags that `/gsd-manager` appends to each dispatched command. This allows customizing how the manager runs discuss, plan, and execute steps without manual flag entry.
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `manager.flags.discuss` | string | (none) | Flags appended to discuss-phase commands (e.g., `"--auto"`) |
-| `manager.flags.plan` | string | (none) | Flags appended to plan-phase commands (e.g., `"--skip-research"`) |
-| `manager.flags.execute` | string | (none) | Flags appended to execute-phase commands (e.g., `"--validate"`) |
+| Setting                 | Type   | Default | Description                                                       |
+| ----------------------- | ------ | ------- | ----------------------------------------------------------------- |
+| `manager.flags.discuss` | string | (none)  | Flags appended to discuss-phase commands (e.g., `"--auto"`)       |
+| `manager.flags.plan`    | string | (none)  | Flags appended to plan-phase commands (e.g., `"--skip-research"`) |
+| `manager.flags.execute` | string | (none)  | Flags appended to execute-phase commands (e.g., `"--validate"`)   |
 
 **Example:**
 
@@ -592,26 +595,26 @@ Invalid flag tokens are sanitized and logged as warnings. Only recognized GSD fl
 
 ### Profile Definitions
 
-| Agent | `quality` | `balanced` | `budget` | `inherit` |
-|-------|-----------|------------|----------|-----------|
-| gsd-planner | Opus | Opus | Sonnet | Inherit |
-| gsd-roadmapper | Opus | Sonnet | Sonnet | Inherit |
-| gsd-executor | Opus | Sonnet | Sonnet | Inherit |
-| gsd-phase-researcher | Opus | Sonnet | Haiku | Inherit |
-| gsd-project-researcher | Opus | Sonnet | Haiku | Inherit |
-| gsd-research-synthesizer | Sonnet | Sonnet | Haiku | Inherit |
-| gsd-debugger | Opus | Sonnet | Sonnet | Inherit |
-| gsd-codebase-mapper | Sonnet | Haiku | Haiku | Inherit |
-| gsd-verifier | Sonnet | Sonnet | Haiku | Inherit |
-| gsd-plan-checker | Sonnet | Sonnet | Haiku | Inherit |
-| gsd-integration-checker | Sonnet | Sonnet | Haiku | Inherit |
-| gsd-nyquist-auditor | Sonnet | Sonnet | Haiku | Inherit |
-| gsd-pattern-mapper | Sonnet | Sonnet | Haiku | Inherit |
-| gsd-ui-researcher | Opus | Sonnet | Haiku | Inherit |
-| gsd-ui-checker | Sonnet | Sonnet | Haiku | Inherit |
-| gsd-ui-auditor | Sonnet | Sonnet | Haiku | Inherit |
-| gsd-doc-writer | Opus | Sonnet | Haiku | Inherit |
-| gsd-doc-verifier | Sonnet | Sonnet | Haiku | Inherit |
+| Agent                    | `quality` | `balanced` | `budget` | `inherit` |
+| ------------------------ | --------- | ---------- | -------- | --------- |
+| gsd-planner              | Opus      | Opus       | Sonnet   | Inherit   |
+| gsd-roadmapper           | Opus      | Sonnet     | Sonnet   | Inherit   |
+| gsd-executor             | Opus      | Sonnet     | Sonnet   | Inherit   |
+| gsd-phase-researcher     | Opus      | Sonnet     | Haiku    | Inherit   |
+| gsd-project-researcher   | Opus      | Sonnet     | Haiku    | Inherit   |
+| gsd-research-synthesizer | Sonnet    | Sonnet     | Haiku    | Inherit   |
+| gsd-debugger             | Opus      | Sonnet     | Sonnet   | Inherit   |
+| gsd-codebase-mapper      | Sonnet    | Haiku      | Haiku    | Inherit   |
+| gsd-verifier             | Sonnet    | Sonnet     | Haiku    | Inherit   |
+| gsd-plan-checker         | Sonnet    | Sonnet     | Haiku    | Inherit   |
+| gsd-integration-checker  | Sonnet    | Sonnet     | Haiku    | Inherit   |
+| gsd-nyquist-auditor      | Sonnet    | Sonnet     | Haiku    | Inherit   |
+| gsd-pattern-mapper       | Sonnet    | Sonnet     | Haiku    | Inherit   |
+| gsd-ui-researcher        | Opus      | Sonnet     | Haiku    | Inherit   |
+| gsd-ui-checker           | Sonnet    | Sonnet     | Haiku    | Inherit   |
+| gsd-ui-auditor           | Sonnet    | Sonnet     | Haiku    | Inherit   |
+| gsd-doc-writer           | Opus      | Sonnet     | Haiku    | Inherit   |
+| gsd-doc-verifier         | Sonnet    | Sonnet     | Haiku    | Inherit   |
 
 > **Fallback semantics for unlisted agents.** The profiles table above covers 18 of 31 shipped agents. Agents without an explicit profile row (`gsd-advisor-researcher`, `gsd-assumptions-analyzer`, `gsd-security-auditor`, `gsd-user-profiler`, and the nine advanced agents — `gsd-ai-researcher`, `gsd-domain-researcher`, `gsd-eval-planner`, `gsd-eval-auditor`, `gsd-framework-selector`, `gsd-code-reviewer`, `gsd-code-fixer`, `gsd-debug-session-manager`, `gsd-intel-updater`) inherit the runtime default model for the selected profile. To pin a specific model for any of these agents, use `model_overrides` (next section) — `model_overrides` accepts any shipped agent name regardless of whether it has a profile row here. The authoritative profile table lives in `get-shit-done/bin/lib/model-profiles.cjs`; the authoritative 31-agent roster lives in [`docs/INVENTORY.md`](INVENTORY.md).
 
@@ -664,20 +667,20 @@ The intent is the same as the Claude profile tiers -- use a stronger model for p
 
 **When to use which approach:**
 
-| Scenario | Setting | Effect |
-|----------|---------|--------|
-| Non-Claude runtime, single model | `resolve_model_ids: "omit"` (installer default) | All agents use the runtime's default model |
-| Non-Claude runtime, tiered models | `resolve_model_ids: "omit"` + `model_overrides` | Named agents use specific models, others use runtime default |
-| Claude Code with OpenRouter/local provider | `model_profile: "inherit"` | All agents follow the session model |
-| Claude Code with OpenRouter, tiered | `model_profile: "inherit"` + `model_overrides` | Named agents use specific models, others inherit |
+| Scenario                                   | Setting                                         | Effect                                                       |
+| ------------------------------------------ | ----------------------------------------------- | ------------------------------------------------------------ |
+| Non-Claude runtime, single model           | `resolve_model_ids: "omit"` (installer default) | All agents use the runtime's default model                   |
+| Non-Claude runtime, tiered models          | `resolve_model_ids: "omit"` + `model_overrides` | Named agents use specific models, others use runtime default |
+| Claude Code with OpenRouter/local provider | `model_profile: "inherit"`                      | All agents follow the session model                          |
+| Claude Code with OpenRouter, tiered        | `model_profile: "inherit"` + `model_overrides`  | Named agents use specific models, others inherit             |
 
 **`resolve_model_ids` values:**
 
-| Value | Behavior | Use When |
-|-------|----------|----------|
-| `false` (default) | Returns Claude aliases (`opus`, `sonnet`, `haiku`) | Claude Code with native Anthropic API |
-| `true` | Maps aliases to full Claude model IDs (`claude-opus-4-6`) | Claude Code with API that requires full IDs |
-| `"omit"` | Returns empty string (runtime picks its default) | Non-Claude runtimes (Codex, OpenCode, Gemini CLI, Kilo) |
+| Value             | Behavior                                                  | Use When                                                |
+| ----------------- | --------------------------------------------------------- | ------------------------------------------------------- |
+| `false` (default) | Returns Claude aliases (`opus`, `sonnet`, `haiku`)        | Claude Code with native Anthropic API                   |
+| `true`            | Maps aliases to full Claude model IDs (`claude-opus-4-6`) | Claude Code with API that requires full IDs             |
+| `"omit"`          | Returns empty string (runtime picks its default)          | Non-Claude runtimes (Codex, OpenCode, Gemini CLI, Kilo) |
 
 ### Runtime-Aware Profiles (#2517)
 
@@ -685,10 +688,10 @@ When `runtime` is set, profile tiers (`opus`/`sonnet`/`haiku`) resolve to runtim
 
 **Built-in tier maps:**
 
-| Runtime | `opus` | `sonnet` | `haiku` | reasoning_effort |
-|---------|--------|----------|---------|------------------|
-| `claude` | `claude-opus-4-6` | `claude-sonnet-4-6` | `claude-haiku-4-5` | (not used) |
-| `codex` | `gpt-5.4` | `gpt-5.3-codex` | `gpt-5.4-mini` | `xhigh` / `medium` / `medium` |
+| Runtime  | `opus`            | `sonnet`            | `haiku`            | reasoning_effort              |
+| -------- | ----------------- | ------------------- | ------------------ | ----------------------------- |
+| `claude` | `claude-opus-4-6` | `claude-sonnet-4-6` | `claude-haiku-4-5` | (not used)                    |
+| `codex`  | `gpt-5.4`         | `gpt-5.3-codex`     | `gpt-5.4-mini`     | `xhigh` / `medium` / `medium` |
 
 **Codex example** — one config, tiered models, no large `model_overrides` block:
 
@@ -739,24 +742,24 @@ This resolves `gsd-planner` → `gpt-5.4` (xhigh), `gsd-executor` → `gpt-5.3-c
 
 ### Profile Philosophy
 
-| Profile | Philosophy | When to Use |
-|---------|-----------|-------------|
-| `quality` | Opus for all decision-making, Sonnet for verification | Quota available, critical architecture work |
-| `balanced` | Opus for planning only, Sonnet for everything else | Normal development (default) |
-| `budget` | Sonnet for code-writing, Haiku for research/verification | High-volume work, less critical phases |
-| `inherit` | All agents use current session model | Dynamic model switching, **non-Anthropic providers** (OpenRouter, local models) |
+| Profile    | Philosophy                                               | When to Use                                                                     |
+| ---------- | -------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `quality`  | Opus for all decision-making, Sonnet for verification    | Quota available, critical architecture work                                     |
+| `balanced` | Opus for planning only, Sonnet for everything else       | Normal development (default)                                                    |
+| `budget`   | Sonnet for code-writing, Haiku for research/verification | High-volume work, less critical phases                                          |
+| `inherit`  | All agents use current session model                     | Dynamic model switching, **non-Anthropic providers** (OpenRouter, local models) |
 
 ---
 
 ## Environment Variables
 
-| Variable | Purpose |
-|----------|---------|
-| `CLAUDE_CONFIG_DIR` | Override default config directory (`~/.claude/`) |
-| `GEMINI_API_KEY` | Detected by context monitor to switch hook event name |
-| `WSL_DISTRO_NAME` | Detected by installer for WSL path handling |
-| `GSD_SKIP_SCHEMA_CHECK` | Skip schema drift detection during execute-phase (v1.31) |
-| `GSD_PROJECT` | Override project root for multi-project workspace support (v1.32) |
+| Variable                | Purpose                                                           |
+| ----------------------- | ----------------------------------------------------------------- |
+| `CLAUDE_CONFIG_DIR`     | Override default config directory (`~/.claude/`)                  |
+| `GEMINI_API_KEY`        | Detected by context monitor to switch hook event name             |
+| `WSL_DISTRO_NAME`       | Detected by installer for WSL path handling                       |
+| `GSD_SKIP_SCHEMA_CHECK` | Skip schema drift detection during execute-phase (v1.31)          |
+| `GSD_PROJECT`           | Override project root for multi-project workspace support (v1.32) |
 
 ---
 
