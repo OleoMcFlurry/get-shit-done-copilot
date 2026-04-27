@@ -4,46 +4,51 @@ Model profiles control which Claude model each GSD agent uses. This allows balan
 
 ## Profile Definitions
 
-| Agent | `quality` | `balanced` | `budget` | `adaptive` | `inherit` |
-|-------|-----------|------------|----------|------------|-----------|
-| gsd-planner | opus | opus | sonnet | opus | inherit |
-| gsd-roadmapper | opus | sonnet | sonnet | sonnet | inherit |
-| gsd-executor | opus | sonnet | sonnet | sonnet | inherit |
-| gsd-phase-researcher | opus | sonnet | haiku | sonnet | inherit |
-| gsd-project-researcher | opus | sonnet | haiku | sonnet | inherit |
-| gsd-research-synthesizer | sonnet | sonnet | haiku | haiku | inherit |
-| gsd-debugger | opus | sonnet | sonnet | opus | inherit |
-| gsd-codebase-mapper | sonnet | haiku | haiku | haiku | inherit |
-| gsd-verifier | sonnet | sonnet | haiku | sonnet | inherit |
-| gsd-plan-checker | sonnet | sonnet | haiku | haiku | inherit |
-| gsd-integration-checker | sonnet | sonnet | haiku | haiku | inherit |
-| gsd-nyquist-auditor | sonnet | sonnet | haiku | haiku | inherit |
+| Agent                    | `quality` | `balanced` | `budget` | `adaptive` | `inherit` |
+| ------------------------ | --------- | ---------- | -------- | ---------- | --------- |
+| gsd-planner              | opus      | opus       | sonnet   | opus       | inherit   |
+| gsd-roadmapper           | opus      | sonnet     | sonnet   | sonnet     | inherit   |
+| gsd-executor             | opus      | sonnet     | sonnet   | sonnet     | inherit   |
+| gsd-phase-researcher     | opus      | sonnet     | haiku    | sonnet     | inherit   |
+| gsd-project-researcher   | opus      | sonnet     | haiku    | sonnet     | inherit   |
+| gsd-research-synthesizer | sonnet    | sonnet     | haiku    | haiku      | inherit   |
+| gsd-debugger             | opus      | sonnet     | sonnet   | opus       | inherit   |
+| gsd-codebase-mapper      | sonnet    | haiku      | haiku    | haiku      | inherit   |
+| gsd-verifier             | sonnet    | sonnet     | haiku    | sonnet     | inherit   |
+| gsd-plan-checker         | sonnet    | sonnet     | haiku    | haiku      | inherit   |
+| gsd-integration-checker  | sonnet    | sonnet     | haiku    | haiku      | inherit   |
+| gsd-nyquist-auditor      | sonnet    | sonnet     | haiku    | haiku      | inherit   |
 
 ## Profile Philosophy
 
 **quality** - Maximum reasoning power
+
 - Opus for all decision-making agents
 - Sonnet for read-only verification
 - Use when: quota available, critical architecture work
 
 **balanced** (default) - Smart allocation
+
 - Opus only for planning (where architecture decisions happen)
 - Sonnet for execution and research (follows explicit instructions)
 - Sonnet for verification (needs reasoning, not just pattern matching)
 - Use when: normal development, good balance of quality and cost
 
 **budget** - Minimal Opus usage
+
 - Sonnet for anything that writes code
 - Haiku for research and verification
 - Use when: conserving quota, high-volume work, less critical phases
 
 **adaptive** — Role-based cost optimization
+
 - Opus for planning and debugging (where reasoning quality has highest impact)
 - Sonnet for execution, research, and verification (follows explicit instructions)
 - Haiku for mapping, checking, and auditing (high volume, structured output)
 - Use when: optimizing cost without sacrificing plan quality, solo development on paid API tiers
 
 **inherit** - Follow the current session model
+
 - All agents resolve to `inherit`
 - Best when you switch models interactively (for example OpenCode or Kilo `/model`)
 - **Required when using non-Anthropic providers** (OpenRouter, local models, etc.) — otherwise GSD may call Anthropic models directly, incurring unexpected costs
@@ -118,6 +123,7 @@ Overrides take precedence over the profile. Valid values: `opus`, `sonnet`, `hai
 Runtime: `/gsd-set-profile <profile>`
 
 Per-project default: Set in `.planning/config.json`:
+
 ```json
 {
   "model_profile": "balanced"
@@ -133,7 +139,7 @@ Planning involves architecture decisions, goal decomposition, and task design. T
 Executors follow explicit PLAN.md instructions. The plan already contains the reasoning; execution is implementation.
 
 **Why Sonnet (not Haiku) for verifiers in balanced?**
-Verification requires goal-backward reasoning - checking if code *delivers* what the phase promised, not just pattern matching. Sonnet handles this well; Haiku may miss subtle gaps.
+Verification requires goal-backward reasoning - checking if code _delivers_ what the phase promised, not just pattern matching. Sonnet handles this well; Haiku may miss subtle gaps.
 
 **Why Haiku for gsd-codebase-mapper?**
 Read-only exploration and pattern extraction. No reasoning required, just structured output from file contents.
@@ -143,3 +149,37 @@ Claude Code's `"opus"` alias maps to a specific model version. Organizations may
 
 **Why `inherit` profile?**
 Some runtimes (including OpenCode) let users switch models at runtime (`/model`). The `inherit` profile keeps all GSD subagents aligned to that live selection.
+
+## copilot Profile (Copilot-Optimized)
+
+Optimized for GitHub Copilot's billing model where sub-agents don't consume separate premium requests. Uses full model IDs (not short aliases) to enable cross-provider assignment.
+
+| Agent                    | Model               |
+| ------------------------ | ------------------- |
+| gsd-planner              | `claude-opus-4.6`   |
+| gsd-roadmapper           | `claude-opus-4.6`   |
+| gsd-executor             | `gpt-5.3-codex`     |
+| gsd-phase-researcher     | `gpt-5.4-mini`      |
+| gsd-project-researcher   | `gpt-5.4-mini`      |
+| gsd-research-synthesizer | `gpt-5.4-mini`      |
+| gsd-debugger             | `claude-opus-4.6`   |
+| gsd-codebase-mapper      | `gpt-5.4-mini`      |
+| gsd-verifier             | `claude-sonnet-4.6` |
+| gsd-plan-checker         | `claude-sonnet-4.6` |
+| gsd-integration-checker  | `claude-sonnet-4.6` |
+| gsd-nyquist-auditor      | `claude-sonnet-4.6` |
+| gsd-pattern-mapper       | `claude-sonnet-4.6` |
+| gsd-ui-researcher        | `claude-opus-4.6`   |
+| gsd-ui-checker           | `claude-sonnet-4.6` |
+| gsd-ui-auditor           | `claude-sonnet-4.6` |
+| gsd-doc-writer           | `gpt-5.4-mini`      |
+| gsd-doc-verifier         | `gpt-5.4-mini`      |
+
+**Rationale:**
+
+- Planning/architecture/debug agents (`gsd-planner`, `gsd-roadmapper`, `gsd-debugger`, `gsd-ui-researcher`): `claude-opus-4.6` — highest reasoning for decisions
+- TDD execution (`gsd-executor`): `gpt-5.3-codex` — specialized code generation
+- Verification/testing agents: `claude-sonnet-4.6` — sufficient reasoning without full opus cost
+- Research/docs/lightweight agents: `gpt-5.4-mini` — high-volume tasks where speed > depth
+
+**Activation:** `/gsd-set-profile copilot` or set `"model_profile": "copilot"` in `.planning/config.json`.

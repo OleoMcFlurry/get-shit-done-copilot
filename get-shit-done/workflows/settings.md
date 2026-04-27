@@ -36,6 +36,7 @@ cat "$GSD_CONFIG_PATH"
 ```
 
 Parse current values (default to `true` if not present):
+
 - `workflow.research` — spawn researcher during plan-phase
 - `workflow.plan_check` — spawn plan checker during plan-phase
 - `workflow.verifier` — spawn verifier during execute-phase
@@ -54,7 +55,7 @@ Parse current values (default to `true` if not present):
 - `model_profile` — which model each agent uses (default: `balanced`)
 - `git.branching_strategy` — branching approach (default: `"none"`)
 - `workflow.use_worktrees` — whether parallel executor agents run in worktree isolation (default: `true`)
-</step>
+  </step>
 
 <step name="present_settings">
 
@@ -81,21 +82,27 @@ Use AskUserQuestion with current values pre-selected. Questions are grouped into
 Section layout:
 
 ### Planning
+
 Research, Plan Checker, Pattern Mapper, Nyquist, UI Phase, UI Gate, AI Phase
 
 ### Execution
+
 Verifier, TDD Mode, Code Review, Code Review Depth _(conditional — only when code_review=on)_, UI Review
 
 ### Docs & Output
-Commit Docs, Skip Discuss, Worktrees
+
+Commit Docs, Skip Discuss, Worktrees, Completion Gate
 
 ### Features
+
 Intel, Graphify
 
 ### Model & Pipeline
+
 Model Profile, Auto-Advance, Branching
 
 ### Misc
+
 Context Warnings, Research Qs
 
 **Conditional visibility — code_review_depth:** This question is shown only when the user's chosen `code_review` value (after they answer that question, or the pre-selected value if unchanged) is on. If `code_review` is off, omit the `code_review_depth` question from the AskUserQuestion block and preserve the existing `workflow.code_review_depth` value in config (do not overwrite). Implementation: ask the Model + Planning + Execution-up-to-Code-Review questions first; if `code_review=on`, include `code_review_depth` in the same batch; otherwise skip it. Conceptually this is a one-branch split on the `code_review` answer.
@@ -110,7 +117,8 @@ AskUserQuestion([
       { label: "Quality", description: "Opus everywhere except verification (highest cost) — Claude only" },
       { label: "Balanced (Recommended)", description: "Opus for planning, Sonnet for research/execution/verification — Claude only" },
       { label: "Budget", description: "Sonnet for writing, Haiku for research/verification (lowest cost) — Claude only" },
-      { label: "Inherit", description: "Use current session model for all agents (required for non-Claude runtimes: Codex, Gemini CLI, OpenRouter, local models)" }
+      { label: "Inherit", description: "Use current session model for all agents (required for non-Claude runtimes: Codex, Gemini CLI, OpenRouter, local models)" },
+      { label: "Copilot", description: "Optimized for Copilot billing: sub-agents don't consume separate premium requests. Uses full model IDs for cross-provider assignment." }
     ]
   },
   {
@@ -292,6 +300,15 @@ AskUserQuestion([
     ]
   },
   {
+    question: "Enable Completion Gate? (keeps main agent alive after each command for chaining tasks in a single billing session)",
+    header: "Gate",
+    multiSelect: false,
+    options: [
+      { label: "Yes (Recommended)", description: "After each command completes, prompts for next step via ask_user. Lets you chain multiple tasks within one session without manual re-entry." },
+      { label: "No", description: "Workflow ends normally after each command. Use when you prefer manual /clear + command re-entry between tasks." }
+    ]
+  },
+  {
     question: "Enable Intel? (queryable codebase intelligence via /gsd-intel — builds a JSON index in .planning/intel/)",
     header: "Intel",
     multiSelect: false,
@@ -311,6 +328,7 @@ AskUserQuestion([
   }
 ])
 ```
+
 </step>
 
 <step name="update_config">
@@ -319,7 +337,7 @@ Merge new settings into existing config.json:
 ```json
 {
   ...existing_config,
-  "model_profile": "quality" | "balanced" | "budget" | "adaptive" | "inherit",
+  "model_profile": "quality" | "balanced" | "budget" | "adaptive" | "inherit" | "copilot",
   "commit_docs": true/false,
   "workflow": {
     "research": true/false,
@@ -339,7 +357,8 @@ Merge new settings into existing config.json:
     "research_before_questions": true/false,
     "discuss_mode": "discuss" | "assumptions",
     "skip_discuss": true/false,
-    "use_worktrees": true/false
+    "use_worktrees": true/false,
+    "completion_gate": true/false
   },
   "intel": {
     "enabled": true/false
@@ -387,6 +406,7 @@ mkdir -p ~/.gsd
 ```
 
 Write `~/.gsd/defaults.json` with:
+
 ```json
 {
   "mode": <current>,
@@ -410,7 +430,9 @@ Write `~/.gsd/defaults.json` with:
     "code_review": <current>,
     "code_review_depth": <current>,
     "ui_review": <current>,
-    "skip_discuss": <current>
+    "skip_discuss": <current>,
+    "use_worktrees": <current>,
+    "completion_gate": <current>
   },
   "intel": {
     "enabled": <current>
@@ -420,6 +442,7 @@ Write `~/.gsd/defaults.json` with:
   }
 }
 ```
+
 </step>
 
 <step name="confirm">
@@ -432,7 +455,7 @@ Display:
 
 | Setting              | Value |
 |----------------------|-------|
-| Model Profile        | {quality/balanced/budget/inherit} |
+| Model Profile        | {quality/balanced/budget/adaptive/inherit/copilot} |
 | Plan Researcher      | {On/Off} |
 | Plan Checker         | {On/Off} |
 | Pattern Mapper       | {On/Off} |
@@ -451,6 +474,8 @@ Display:
 | AI Integration Phase | {On/Off} |
 | Git Branching        | {None/Per Phase/Per Milestone} |
 | Skip Discuss         | {On/Off} |
+| Use Worktrees        | {On/Off} |
+| Completion Gate      | {On/Off} |
 | Context Warnings     | {On/Off} |
 | Saved as Defaults    | {Yes/No} |
 
@@ -464,14 +489,16 @@ Quick commands:
 - /gsd-plan-phase --skip-verify — skip plan check
 - /gsd-settings-advanced — power-user tuning (plan bounce, timeouts, branch templates, cross-AI, context window)
 ```
+
 </step>
 
 </process>
 
 <success_criteria>
+
 - [ ] Current config read
-- [ ] User presented with 22 settings (profile + workflow toggles + features + git branching + ctx warnings), grouped into six sections: Planning, Execution, Docs & Output, Features, Model & Pipeline, Misc. `code_review_depth` is conditional on `code_review=on`.
+- [ ] User presented with 24 settings (profile + workflow toggles + features + git branching + ctx warnings + completion gate), grouped into six sections: Planning, Execution, Docs & Output, Features, Model & Pipeline, Misc. `code_review_depth` is conditional on `code_review=on`.
 - [ ] Config updated with model_profile, workflow, and git sections
 - [ ] User offered to save as global defaults (~/.gsd/defaults.json)
 - [ ] Changes confirmed to user
-</success_criteria>
+      </success_criteria>
