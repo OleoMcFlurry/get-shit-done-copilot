@@ -5,10 +5,10 @@
  * `buildNewProjectConfig()`.
  */
 
-import { readFile } from 'node:fs/promises';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
-import { relPlanningPath } from './workstream-utils.js';
+import { readFile } from "node:fs/promises";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import { relPlanningPath } from "./workstream-utils.js";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -39,6 +39,8 @@ export interface WorkflowConfig {
   max_discuss_passes: number;
   /** Subagent timeout in ms (matches `get-shit-done/bin/lib/core.cjs` default 300000). */
   subagent_timeout: number;
+  /** Keep the main agent session alive after command completion. Default: false. */
+  completion_gate?: boolean;
   /**
    * Issue #2492. When true (default), enforces that every trackable decision in
    * CONTEXT.md `<decisions>` is referenced by at least one plan (translation
@@ -76,7 +78,7 @@ export interface GSDConfig {
 // ─── Defaults ────────────────────────────────────────────────────────────────
 
 export const CONFIG_DEFAULTS: GSDConfig = {
-  model_profile: 'balanced',
+  model_profile: "balanced",
   commit_docs: true,
   parallelization: true,
   search_gitignored: false,
@@ -84,9 +86,9 @@ export const CONFIG_DEFAULTS: GSDConfig = {
   firecrawl: false,
   exa_search: false,
   git: {
-    branching_strategy: 'none',
-    phase_branch_template: 'gsd/phase-{phase}-{slug}',
-    milestone_branch_template: 'gsd/{milestone}-{slug}',
+    branching_strategy: "none",
+    phase_branch_template: "gsd/phase-{phase}-{slug}",
+    milestone_branch_template: "gsd/{milestone}-{slug}",
     quick_branch_template: null,
   },
   workflow: {
@@ -102,7 +104,7 @@ export const CONFIG_DEFAULTS: GSDConfig = {
     ui_safety_gate: true,
     text_mode: false,
     research_before_questions: false,
-    discuss_mode: 'discuss',
+    discuss_mode: "discuss",
     skip_discuss: false,
     max_discuss_passes: 3,
     subagent_timeout: 300000,
@@ -113,7 +115,7 @@ export const CONFIG_DEFAULTS: GSDConfig = {
   },
   agent_skills: {},
   project_code: null,
-  mode: 'interactive',
+  mode: "interactive",
   _auto_chain_active: false,
 };
 
@@ -132,18 +134,22 @@ export const CONFIG_DEFAULTS: GSDConfig = {
  */
 async function loadUserDefaults(): Promise<Record<string, unknown>> {
   const home = process.env.GSD_HOME || homedir();
-  const defaultsPath = join(home, '.gsd', 'defaults.json');
+  const defaultsPath = join(home, ".gsd", "defaults.json");
   let raw: string;
   try {
-    raw = await readFile(defaultsPath, 'utf-8');
+    raw = await readFile(defaultsPath, "utf-8");
   } catch {
     return {};
   }
   const trimmed = raw.trim();
-  if (trimmed === '') return {};
+  if (trimmed === "") return {};
   try {
     const parsed = JSON.parse(trimmed);
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    if (
+      typeof parsed !== "object" ||
+      parsed === null ||
+      Array.isArray(parsed)
+    ) {
       return {};
     }
     return parsed as Record<string, unknown>;
@@ -152,26 +158,33 @@ async function loadUserDefaults(): Promise<Record<string, unknown>> {
   }
 }
 
-export async function loadConfig(projectDir: string, workstream?: string): Promise<GSDConfig> {
-  const configPath = join(projectDir, relPlanningPath(workstream), 'config.json');
-  const rootConfigPath = join(projectDir, '.planning', 'config.json');
+export async function loadConfig(
+  projectDir: string,
+  workstream?: string
+): Promise<GSDConfig> {
+  const configPath = join(
+    projectDir,
+    relPlanningPath(workstream),
+    "config.json"
+  );
+  const rootConfigPath = join(projectDir, ".planning", "config.json");
 
   let raw: string;
   let projectConfigFound = false;
   try {
-    raw = await readFile(configPath, 'utf-8');
+    raw = await readFile(configPath, "utf-8");
     projectConfigFound = true;
   } catch {
     // If workstream config missing, fall back to root config
     if (workstream) {
       try {
-        raw = await readFile(rootConfigPath, 'utf-8');
+        raw = await readFile(rootConfigPath, "utf-8");
         projectConfigFound = true;
       } catch {
-        raw = '';
+        raw = "";
       }
     } else {
-      raw = '';
+      raw = "";
     }
   }
 
@@ -186,7 +199,7 @@ export async function loadConfig(projectDir: string, workstream?: string): Promi
   }
 
   const trimmed = raw.trim();
-  if (trimmed === '') {
+  if (trimmed === "") {
     // Empty project config — treat as no project config (CJS core.cjs
     // catches JSON.parse on empty and falls through to the pre-project path).
     const userDefaults = await loadUserDefaults();
@@ -201,7 +214,7 @@ export async function loadConfig(projectDir: string, workstream?: string): Promi
     throw new Error(`Failed to parse config at ${configPath}: ${msg}`);
   }
 
-  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
     throw new Error(`Config at ${configPath} must be a JSON object`);
   }
 
@@ -216,19 +229,19 @@ function mergeDefaults(parsed: Record<string, unknown>): GSDConfig {
     ...parsed,
     git: {
       ...CONFIG_DEFAULTS.git,
-      ...(parsed.git as Partial<GitConfig> ?? {}),
+      ...((parsed.git as Partial<GitConfig>) ?? {}),
     },
     workflow: {
       ...CONFIG_DEFAULTS.workflow,
-      ...(parsed.workflow as Partial<WorkflowConfig> ?? {}),
+      ...((parsed.workflow as Partial<WorkflowConfig>) ?? {}),
     },
     hooks: {
       ...CONFIG_DEFAULTS.hooks,
-      ...(parsed.hooks as Partial<HooksConfig> ?? {}),
+      ...((parsed.hooks as Partial<HooksConfig>) ?? {}),
     },
     agent_skills: {
       ...CONFIG_DEFAULTS.agent_skills,
-      ...(parsed.agent_skills as Record<string, unknown> ?? {}),
+      ...((parsed.agent_skills as Record<string, unknown>) ?? {}),
     },
   };
 }
